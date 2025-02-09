@@ -1,3 +1,5 @@
+import { defineNuxtConfig } from "nuxt/config";
+
 export default defineNuxtConfig({
   css: ["~/assets/main.scss"],
   plugins: [],
@@ -20,7 +22,11 @@ export default defineNuxtConfig({
       ],
     },
   },
-  gtag: {
-    id: "G-V37Q6Z6GWH",
+  runtimeConfig: {
+    public: {
+      gtag: {
+        id: "G-V37Q6Z6GWH",
+      },
+    },
   },
 });

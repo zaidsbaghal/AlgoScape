@@ -1,6 +1,9 @@
-import { defineNuxtConfig } from "nuxt/config";
-
 export default defineNuxtConfig({
+  css: ["~/assets/main.scss"],
+  plugins: [],
+  modules: ["@pinia/nuxt", "nuxt-gtag"],
+  build: {},
+  compatibilityDate: "2025-01-13",
   app: {
     head: {
       charset: "utf-16",
@@ -17,10 +20,7 @@ export default defineNuxtConfig({
       ],
     },
   },
-
-  css: ["~/assets/main.scss"],
-  plugins: [],
-  modules: ["@pinia/nuxt"],
-  build: {},
-  compatibilityDate: "2025-01-13",
+  gtag: {
+    id: "G-V37Q6Z6GWH",
+  },
 });

@@ -52,7 +52,12 @@
             Rawi.</a
           >
         </p>
-        © 2025 Rawi Studios. All rights reserved.
+        <p>
+          © 2025 Rawi Studios. All rights reserved. |
+          <a href="/privacy" class="highlighted-link">Privacy</a> |
+          <a href="/terms" class="highlighted-link">Terms</a> |
+          <a href="/changelog" class="highlighted-link">Changelog</a>
+        </p>
       </div>
     </client-only>
   </div>

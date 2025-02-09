@@ -5,7 +5,7 @@ export default defineNuxtConfig({
     head: {
       charset: "utf-16",
       viewport: "width=device-width, initial-scale=1",
-      title: "AlgoCanvas",
+      title: "AlgoScape",
       meta: [
         { charset: "utf-8" },
         { name: "viewport", content: "width=device-width, initial-scale=1" },

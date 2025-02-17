@@ -5,8 +5,8 @@ export const bfs = (x, y, grid, animations, rowNum, colNum) => {
 };
 const bfsHelper = (x, y, grid, animations, rowNum, colNum) => {
   let current = grid[x][y];
-  let currStyle = document.getElementById(current.id).className;
-  let q = [];
+  let currStyle = document.getElementById(current.id)?.className;
+  let q: any[] = [];
   current.visited = true;
   if (current.isEnd == false && current.isStart == false) {
     animations.push(["visit", x, y]);
@@ -31,7 +31,7 @@ const bfsHelper = (x, y, grid, animations, rowNum, colNum) => {
     for (let i = 0; i < neighbors.length; i++) {
       let ncoords = neighbors[i];
       let n = grid[ncoords[0]][ncoords[1]];
-      if (document.getElementById(n.id).className === "wall") {
+      if (document.getElementById(n.id)?.className === "wall") {
         continue; // skip walls
       }
       if (n.visited === false) {
@@ -49,8 +49,8 @@ const bfsHelper = (x, y, grid, animations, rowNum, colNum) => {
   }
   return;
 };
-const getNeighbors = (node, rowNum, colNum) => {
-  let result = [];
+const getNeighbors = (node, rowNum, colNum): number[][] => {
+  let result: number[][] = [];
   let row = node.row;
   let col = node.col;
 

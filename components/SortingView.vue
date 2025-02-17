@@ -2,16 +2,14 @@
   <div class="sort-container fade-in">
     <div class="function-buttons">
       <button
-        class="toolbar-button"
-        style="background-color: #984334"
+        class="toolbar-button generate-button"
         v-on:click="genArray"
         :disabled="buttonDisable"
       >
         Generate New
       </button>
       <button
-        class="toolbar-button"
-        style="background-color: #984334"
+        class="toolbar-button reset-button"
         v-on:click="resetArray"
         :disabled="buttonDisable"
       >
@@ -68,11 +66,11 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeMount } from "vue";
-import { mergeSort } from "~/composables/MergeSort.js";
-import { quickSort } from "~/composables/QuickSort.js";
-import { bubbleSort } from "~/composables/BubbleSort.js";
-import { selectionSort } from "~/composables/SelectionSort.js";
-import { insertionSort } from "~/composables/InsertionSort.js";
+import { mergeSort } from "~/composables/MergeSort.ts";
+import { quickSort } from "~/composables/QuickSort.ts";
+import { bubbleSort } from "~/composables/BubbleSort.ts";
+import { selectionSort } from "~/composables/SelectionSort.ts";
+import { insertionSort } from "~/composables/InsertionSort.ts";
 
 const array = ref([]);
 const animations = ref([]);
@@ -521,7 +519,8 @@ const insertionSortButton = () => {
 };
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
+@use "sass:color";
 @use "./assets/main.scss" as *;
 .sort-container {
   padding: 0;
@@ -541,11 +540,24 @@ const insertionSortButton = () => {
   text-align: center;
   display: inline-block;
   font-size: 16px;
+  cursor: pointer;
 }
 
 .toolbar-button:hover {
-  opacity: 0.7;
-  cursor: pointer;
+  background-color: color.adjust($chestnut);
+}
+
+.generate-button,
+.reset-button {
+  background-color: $chestnut !important;
+}
+
+.generate-button:hover {
+  background-color: color.adjust($chestnut, $lightness: -10%) !important;
+}
+
+.reset-button:hover {
+  background-color: color.adjust($chestnut, $lightness: -10%) !important;
 }
 
 .active-window {

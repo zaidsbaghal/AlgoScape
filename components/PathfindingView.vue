@@ -3,16 +3,14 @@
     <div class="path-container fade-in">
       <div class="function-buttons">
         <button
-          class="toolbar-button"
-          style="background-color: #984334ff"
+          class="toolbar-button reset-grid-button"
           :disabled="buttonDisable"
           v-on:click="resetGrid"
         >
           Reset Grid
         </button>
         <button
-          class="toolbar-button"
-          style="background-color: #984334ff"
+          class="toolbar-button reset-vis-button"
           :disabled="buttonDisable"
           v-on:click="resetVis"
         >
@@ -579,7 +577,8 @@ const aStarButton = () => {
   }
 };
 </script>
-<style lang="scss">
+<style lang="scss" scoped>
+@use "sass:color";
 @use "./assets/main.scss" as *;
 .path-container {
   display: flex;
@@ -590,8 +589,9 @@ const aStarButton = () => {
     padding-bottom: 3rem;
   }
   .graph-action {
+    border: 1px solid;
+    width: fit-content;
     height: 100%;
-    width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -615,5 +615,20 @@ const aStarButton = () => {
   text-align: center;
   display: inline-block;
   font-size: 16px;
+  cursor: pointer;
+}
+
+.toolbar-button:hover {
+  background-color: color.adjust($chestnut, $lightness: -10%) !important;
+}
+
+.reset-grid-button,
+.reset-vis-button {
+  background-color: $chestnut !important;
+}
+
+.reset-grid-button:hover,
+.reset-vis-button:hover {
+  background-color: color.adjust($chestnut, $lightness: -10%) !important;
 }
 </style>

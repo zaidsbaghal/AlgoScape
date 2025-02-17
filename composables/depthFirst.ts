@@ -7,8 +7,8 @@ export const dfs = (x, y, grid, animations, rowNum, colNum) => {
   return animations;
 };
 // returns an array of all neighbor nodes to a node
-const getNeighbors = (node, rowNum, colNum) => {
-  let result = [];
+const getNeighbors = (node, rowNum, colNum): number[][] => {
+  let result: number[][] = [];
   let row = node.row;
   let col = node.col;
 
@@ -50,7 +50,7 @@ const dfsHelper = (x, y, grid, animations, state, rowNum, colNum) => {
   for (let i = 0; i < neighbors.length; i++) {
     let ncoords = neighbors[i];
     let n = grid[ncoords[0]][ncoords[1]];
-    if (document.getElementById(n.id).className === "wall") {
+    if (document.getElementById(n.id)?.className === "wall") {
       continue; // skip walls
     }
     // Check if the node is a wall using the grid structure

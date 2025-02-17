@@ -7,6 +7,15 @@
       regularly to stay informed about new features and improvements.
     </p>
 
+    <h2>Version 1.0.1 - Minor Update</h2>
+    <ul>
+      <li>Made minor style optimizations for improved visual consistency.</li>
+      <li>
+        Implemented small performance optimizations for faster load times.
+      </li>
+      <li>Migrated to modern code practices for better maintainability.</li>
+    </ul>
+
     <h2>Version 1.0.0 - Release</h2>
     <ul>
       <li>Official release of AlgoScape with full functionality.</li>

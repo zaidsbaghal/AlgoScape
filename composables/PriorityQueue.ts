@@ -1,4 +1,3 @@
-// for use with dikstras algorithm
 export const enqueue = (data, element) => {
   if (isEmpty(data)) {
     data.push(element);

@@ -1,7 +1,8 @@
 import { ref } from "vue";
+import { enqueue, dequeue } from "./PriorityQueue";
 
-const getNeighbors = (node, rowNum, colNum) => {
-  let result = [];
+const getNeighbors = (node, rowNum, colNum): number[][] => {
+  let result: number[][] = [];
   let row = node.row;
   let col = node.col;
 
@@ -54,7 +55,7 @@ export const dijkstra = (grid, x, y, animations, pq, rowNum, colNum) => {
     for (let i = 0; i < neighbors.length; i++) {
       let ncoords = neighbors[i];
       let n = grid[ncoords[0]][ncoords[1]];
-      if (document.getElementById(n.id).className === "wall") {
+      if (document.getElementById(n.id)?.className === "wall") {
         continue;
       }
       let newDist = current.ddist + 1; // set new distance

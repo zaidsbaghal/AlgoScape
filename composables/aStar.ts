@@ -1,3 +1,5 @@
+import { enqueueStar, dequeue, isEmpty, reorder } from "./PriorityQueue";
+
 export const aStar = (
   grid,
   startX,
@@ -43,7 +45,7 @@ export const aStar = (
       console.log(neighborNode);
       if (
         neighborNode.closed ||
-        document.getElementById(neighborNode.id).className === "wall"
+        document.getElementById(neighborNode.id)?.className === "wall"
       ) {
         continue; // Skip if neighbor is closed or is a wall
       }
@@ -84,8 +86,8 @@ const getDistance = (currentNode, neighborNode) => {
   return distance;
 };
 
-const getNeighbors = (node, rowNum, colNum) => {
-  let result = [];
+const getNeighbors = (node, rowNum, colNum): number[][] => {
+  let result: number[][] = [];
   let row = node.row;
   let col = node.col;
 

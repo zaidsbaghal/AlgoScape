@@ -5,11 +5,11 @@
 const props = defineProps({
   row: {
     type: Number,
-    default: 0, // Default value, change as needed
+    default: 0,
   },
   col: {
     type: Number,
-    default: 0, // Default value, change as needed
+    default: 0,
   },
   isWall: {
     type: Boolean,
@@ -29,7 +29,7 @@ const props = defineProps({
   },
   id: {
     type: String,
-    default: "", // Default value, change as needed
+    default: "",
   },
   ref: {
     type: String,
@@ -37,30 +37,29 @@ const props = defineProps({
   },
   parent: {
     type: Object,
-    default: null, // Default value, change as needed
+    default: null, 
   },
   ddist: {
     type: Number,
-    default: 0, // Default value, change as needed
+    default: 0, 
   },
   g: {
     type: Number,
-    default: 0, // Default value, change as needed
+    default: 0,
   },
   h: {
     type: Number,
-    default: 0, // Default value, change as needed
+    default: 0,
   },
   f: {
     type: Number,
-    default: 0, // Default value, change as needed
+    default: 0,
   },
   closed: {
     type: Boolean,
     default: false,
   },
 });
-const divRef = ref(props.ref);
 </script>
 <style lang="scss">
 @use "./assets/main.scss" as *;
@@ -123,7 +122,6 @@ const divRef = ref(props.ref);
 }
 @media screen and (min-device-width: 1200px) and (max-device-width: 1600px) and (-webkit-min-device-pixel-ratio: 1) {
   .box {
-    // animation: fadeIn ease 1s;
     width: 18px;
     height: 18px;
   }

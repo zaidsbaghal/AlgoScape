@@ -7,6 +7,13 @@
       regularly to stay informed about new features and improvements.
     </p>
 
+    <h2>Version 1.1.0 - Major Update</h2>
+    <ul>
+      <li>
+        Updated to Nuxt 3.17; improvements can be read about
+        <a href="https://nuxt.com/blog/v3-17" target="_blank">here</a>.
+      </li>
+    </ul>
     <h2>Version 1.0.1 - Minor Update</h2>
     <ul>
       <li>Made minor style optimizations for improved visual consistency.</li>

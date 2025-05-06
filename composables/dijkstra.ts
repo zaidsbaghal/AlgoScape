@@ -68,7 +68,6 @@ export const dijkstra = (grid, x, y, animations, pq, rowNum, colNum) => {
     }
   }
 
-  console.log("not found");
   pq = [];
   animations.push(["nfound", -1, -1]);
   return animations;

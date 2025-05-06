@@ -42,7 +42,6 @@ export const aStar = (
     for (let i = 0; i < neighbors.length; i++) {
       let [neighborRow, neighborCol] = neighbors[i];
       let neighborNode = grid[neighborRow][neighborCol];
-      console.log(neighborNode);
       if (
         neighborNode.closed ||
         document.getElementById(neighborNode.id)?.className === "wall"

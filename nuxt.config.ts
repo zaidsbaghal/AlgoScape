@@ -15,11 +15,20 @@ export default defineNuxtConfig({
         { charset: "utf-8" },
         { name: "viewport", content: "width=device-width, initial-scale=1" },
         {
-          hid: "description",
           name: "description",
-          content: "Software Engineer",
+          content:
+            "Interactive algorithm visualizations for sorting and pathfinding. Explore Merge Sort, Quick Sort, Dijkstra's, A* and more with dynamic visual representations.",
         },
+        {
+          name: "keywords",
+          content:
+            "algorithms, data structures, sorting, pathfinding, visualization, education, computer science, merge sort, quick sort, dijkstra, a*, bfs, dfs",
+        },
+        { name: "author", content: "Zachary Brown" },
       ],
+      htmlAttrs: {
+        lang: "en",
+      },
     },
   },
   runtimeConfig: {

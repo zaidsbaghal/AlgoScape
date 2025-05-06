@@ -583,10 +583,15 @@ const aStarButton = () => {
 .path-container {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
+  flex: 1;
+  min-height: 0;
+  overflow-y: hidden;
   .function-buttons {
     padding-bottom: 3rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
   }
   .graph-action {
     border: 1px solid;
@@ -616,6 +621,7 @@ const aStarButton = () => {
   display: inline-block;
   font-size: 16px;
   cursor: pointer;
+  border-radius: 5px;
 }
 
 .toolbar-button:hover {
@@ -630,5 +636,25 @@ const aStarButton = () => {
 .reset-grid-button:hover,
 .reset-vis-button:hover {
   background-color: color.adjust($chestnut, $lightness: -10%) !important;
+}
+
+@media screen and (max-width: 768px) {
+  .path-container {
+    justify-content: flex-start;
+    .function-buttons {
+      flex-shrink: 0;
+      padding-bottom: 0.5rem;
+      .toolbar-button {
+        margin: 5px;
+      }
+    }
+    .graph-action {
+      max-width: 100vw;
+      overflow-x: auto;
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+    }
+  }
 }
 </style>

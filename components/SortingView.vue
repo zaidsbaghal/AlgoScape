@@ -65,7 +65,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeMount } from "vue";
+import { ref, computed, onMounted, onBeforeMount, defineProps } from "vue";
 import { mergeSort } from "~/composables/MergeSort.ts";
 import { quickSort } from "~/composables/QuickSort.ts";
 import { bubbleSort } from "~/composables/BubbleSort.ts";
@@ -80,6 +80,14 @@ const animSpeed = ref(1);
 const buttonDisable = ref(false);
 const nuxtApp = useNuxtApp();
 const loading = ref(false);
+
+// Define props
+const props = defineProps({
+  isMobile: {
+    type: Boolean,
+    default: false,
+  },
+});
 
 const genArray = () => {
   if (buttonDisable.value === true) {
@@ -137,7 +145,9 @@ const newArray = () => {
   sorted.value = false;
   array.value = [];
 
-  for (let i = 0; i < 80; i++) {
+  const numBars = props.isMobile ? 40 : 80; // Use prop to set number of bars
+
+  for (let i = 0; i < numBars; i++) {
     array.value[i] = randomIntFromInterval(50, 999);
   }
 
@@ -146,11 +156,19 @@ const newArray = () => {
 };
 
 const heightFactor = computed(() => {
-  var mq = window.matchMedia(
-    "(min-device-width: 1200px) and (max-device-width: 1600px)"
-  );
-  const factor = mq.matches ? 0.55 : 0.65;
-  return factor;
+  if (props.isMobile) {
+    return 0.3; // Adjusted factor for mobile, using the prop
+  }
+  // Desktop logic remains, can be simplified if props.isMobile is exhaustive
+  if (typeof window !== "undefined") {
+    var mqDesktop = window.matchMedia(
+      "(min-device-width: 1200px) and (max-device-width: 1600px)"
+    );
+    if (mqDesktop.matches) {
+      return 0.55;
+    }
+  }
+  return 0.65; // Default desktop factor
 });
 
 onBeforeMount(() => {
@@ -529,6 +547,14 @@ const insertionSortButton = () => {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  flex: 1;
+  min-height: 0;
+  overflow-y: hidden;
+  .function-buttons {
+    display: flex; // Added for easier flex-direction change
+    flex-wrap: wrap; // Allow buttons to wrap
+    justify-content: center; // Center buttons when wrapped
+  }
 }
 
 .toolbar-button {
@@ -541,6 +567,7 @@ const insertionSortButton = () => {
   display: inline-block;
   font-size: 16px;
   cursor: pointer;
+  border-radius: 5px;
 }
 
 .toolbar-button:hover {
@@ -593,6 +620,7 @@ const insertionSortButton = () => {
   display: flex;
   justify-content: center;
 }
+
 @media screen and (min-device-width: 1200px) and (max-device-width: 1600px) and (-webkit-min-device-pixel-ratio: 1) {
   .sort-container {
     padding: 0;
@@ -621,6 +649,38 @@ const insertionSortButton = () => {
     width: 10px;
     background-color: $gunmetal;
     display: inline-block;
+    margin: 0 1px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .sort-container {
+    justify-content: flex-start;
+    .function-buttons {
+      flex-shrink: 0;
+      .toolbar-button {
+        margin: 5px;
+        padding: 8px 12px;
+        font-size: 14px;
+      }
+    }
+  }
+  .active-window {
+    padding: 0.5rem;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+  }
+  .array-container {
+    overflow-x: auto;
+    flex: 1;
+    min-height: 0;
+  }
+  .array-bar {
+    width: 8px;
     margin: 0 1px;
   }
 }

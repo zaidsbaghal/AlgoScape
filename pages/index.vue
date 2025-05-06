@@ -1,13 +1,7 @@
 <template>
   <div class="main">
     <client-only>
-      <div v-if="isMobile" class="mobile-view">
-        <h1 class="mobile-text">
-          This site is not currently supported on mobile. Please, try visiting
-          on your computer!
-        </h1>
-      </div>
-      <div v-else>
+      <div>
         <div class="algorithm-container">
           <div class="select-container">
             <select
@@ -27,7 +21,7 @@
             :color="loaderColor"
             :size="loaderSize"
           ></grid-loader>
-          <SortingView></SortingView>
+          <SortingView :is-mobile="isMobile"></SortingView>
         </div>
         <div v-show="AlgoCategory === 'pathfinding'">
           <PathfindingView></PathfindingView>
@@ -103,6 +97,7 @@ select {
 .main {
   display: flex;
   flex-direction: column;
+  height: 100vh;
   .algorithm-container {
     margin-top: 1rem;
     margin-bottom: 1rem;
@@ -128,28 +123,73 @@ select {
       color: $gunmetal;
     }
   }
+}
 
-  .copyright {
-    position: fixed;
-    bottom: 10px;
-    width: 100%;
-    text-align: center;
-    font-size: 10px;
+.copyright {
+  position: fixed;
+  bottom: 10px;
+  width: 100%;
+  text-align: center;
+  font-size: 10px;
+  color: $gunmetal;
+  opacity: 0.5;
+  line-height: 1.4;
+  p {
+    margin: 0;
+  }
+  .highlighted-link {
     color: $gunmetal;
-    opacity: 0.5;
-    line-height: 1.4;
+    text-decoration: none;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
 
-    p {
-      margin: 0;
+@media screen and (max-width: 768px) {
+  .main {
+    overflow-y: hidden;
+
+    > div:first-child {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow-y: hidden;
     }
 
-    .highlighted-link {
-      color: $gunmetal;
-      text-decoration: none;
-
-      &:hover {
-        text-decoration: underline;
+    .algorithm-container {
+      height: auto;
+      margin-top: 0.5rem;
+      margin-bottom: 0.5rem;
+      .algo-select {
+        height: auto;
+        padding: 10px 15px;
+        font-size: 24px;
       }
+    }
+
+    .copyright {
+      position: static;
+      flex-shrink: 0;
+      padding: 5px 0;
+      font-size: 8px;
+      opacity: 1;
+      line-height: 1.2;
+      width: 100%;
+      text-align: center;
+      color: $gunmetal;
+      p {
+        margin: 0;
+      }
+    }
+
+    div[v-show="AlgoCategory === 'sorting'"],
+    div[v-show="AlgoCategory === 'pathfinding'"] {
+      flex: 1;
+      display: flex;
+      min-height: 0;
+      overflow-y: hidden;
     }
   }
 }

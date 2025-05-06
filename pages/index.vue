@@ -24,7 +24,7 @@
           <SortingView :is-mobile="isMobile"></SortingView>
         </div>
         <div v-show="AlgoCategory === 'pathfinding'">
-          <PathfindingView></PathfindingView>
+          <PathfindingView :is-mobile="isMobile"></PathfindingView>
         </div>
       </div>
       <div class="copyright">
@@ -58,13 +58,16 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 
 // Computed property
 const isMobile = computed(() => {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-    navigator.userAgent
-  );
+  if (typeof navigator !== "undefined") {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    );
+  }
+  return false;
 });
 
 // Data properties
@@ -72,6 +75,18 @@ const AlgoCategory = ref("sorting");
 const loaderLoading = ref(true);
 const loaderColor = ref("#264653");
 const loaderSize = ref("300");
+
+// Persist AlgoCategory to localStorage
+onMounted(() => {
+  const savedCategory = localStorage.getItem("selectedAlgoCategory");
+  if (savedCategory) {
+    AlgoCategory.value = savedCategory;
+  }
+});
+
+watch(AlgoCategory, (newCategory) => {
+  localStorage.setItem("selectedAlgoCategory", newCategory);
+});
 </script>
 
 <style lang="scss">

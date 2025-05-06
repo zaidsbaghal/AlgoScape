@@ -71,18 +71,43 @@
   </ClientOnly>
 </template>
 <script setup>
-import { onMounted, ref, nextTick } from "vue";
+import { onMounted, ref, nextTick, defineProps } from "vue";
 import GridNode from "~/components/GridNode.vue";
 
-const rowNum = ref(30);
-const colNum = ref(70);
+// Define props
+const props = defineProps({
+  isMobile: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+// Define Desktop and Mobile constants
+const DESKTOP_ROWS = 30;
+const DESKTOP_COLS = 70;
+const DESKTOP_START_X = 30;
+const DESKTOP_START_Y = 15;
+const DESKTOP_END_X = 40;
+const DESKTOP_END_Y = 15;
+
+const MOBILE_ROWS = 25;
+const MOBILE_COLS = 15;
+const MOBILE_START_X = 3;
+const MOBILE_START_Y = 12;
+const MOBILE_END_X = 11;
+const MOBILE_END_Y = 12;
+
+const rowNum = ref(props.isMobile ? MOBILE_ROWS : DESKTOP_ROWS);
+const colNum = ref(props.isMobile ? MOBILE_COLS : DESKTOP_COLS);
 const grid = ref([[]]);
 const startNode = ref(null);
 const endNode = ref(null);
-const startX = ref(30);
-const startY = ref(15);
-const endX = ref(40);
-const endY = ref(15);
+
+const startX = ref(props.isMobile ? MOBILE_START_X : DESKTOP_START_X);
+const startY = ref(props.isMobile ? MOBILE_START_Y : DESKTOP_START_Y);
+const endX = ref(props.isMobile ? MOBILE_END_X : DESKTOP_END_X);
+const endY = ref(props.isMobile ? MOBILE_END_Y : DESKTOP_END_Y);
+
 const animations = ref([]);
 const defaultGraph = ref([]);
 const found = ref(false);
@@ -213,11 +238,15 @@ const makeWall = (node) => {
 
 // Initialize the start node
 const setStart = () => {
-  startX.value = 30;
-  startY.value = 15;
-  let id = grid.value[30][15].id;
-  grid.value[30][15].isStart = true;
-  grid.value[30][15].ddist = 0;
+  // Use the initial values based on mobile/desktop for resetting
+  const initialStartX = props.isMobile ? MOBILE_START_X : DESKTOP_START_X;
+  const initialStartY = props.isMobile ? MOBILE_START_Y : DESKTOP_START_Y;
+
+  startX.value = initialStartX;
+  startY.value = initialStartY;
+  let id = grid.value[initialStartX][initialStartY].id;
+  grid.value[initialStartX][initialStartY].isStart = true;
+  grid.value[initialStartX][initialStartY].ddist = 0;
   const element = document.getElementById(id);
   if (element) {
     element.className = "start";
@@ -228,10 +257,14 @@ const setStart = () => {
 
 // Initialize the end node
 const setEnd = () => {
-  endX.value = 40;
-  endY.value = 15;
-  let id = grid.value[40][15].id;
-  grid.value[40][15].isEnd = true;
+  // Use the initial values based on mobile/desktop for resetting
+  const initialEndX = props.isMobile ? MOBILE_END_X : DESKTOP_END_X;
+  const initialEndY = props.isMobile ? MOBILE_END_Y : DESKTOP_END_Y;
+
+  endX.value = initialEndX;
+  endY.value = initialEndY;
+  let id = grid.value[initialEndX][initialEndY].id;
+  grid.value[initialEndX][initialEndY].isEnd = true;
   const element = document.getElementById(id);
   if (element) {
     element.className = "end";
@@ -641,6 +674,8 @@ const aStarButton = () => {
 @media screen and (max-width: 768px) {
   .path-container {
     justify-content: flex-start;
+    overflow: hidden;
+    border: none;
     .function-buttons {
       flex-shrink: 0;
       padding-bottom: 0.5rem;
@@ -650,10 +685,11 @@ const aStarButton = () => {
     }
     .graph-action {
       max-width: 100vw;
-      overflow-x: auto;
+      overflow-x: hidden;
       flex: 1;
       min-height: 0;
       width: 100%;
+      border: none;
     }
   }
 }

@@ -7,14 +7,14 @@
       regularly to stay informed about new features and improvements.
     </p>
 
-    <h2>Version 1.1.0</h2>
+    <h2>1.1.0</h2>
     <ul>
       <li>
         Updated to Nuxt 3.17; improvements can be read about
         <a href="https://nuxt.com/blog/v3-17" target="_blank">here</a>.
       </li>
     </ul>
-    <h2>Version 1.0.1</h2>
+    <h2>1.0.1</h2>
     <ul>
       <li>Made minor style optimizations for improved visual consistency.</li>
       <li>
@@ -23,7 +23,7 @@
       <li>Migrated to modern code practices for better maintainability.</li>
     </ul>
 
-    <h2>Version 1.0.0</h2>
+    <h2>1.0.0</h2>
     <ul>
       <li>Official release of AlgoScape with full functionality.</li>
       <li>

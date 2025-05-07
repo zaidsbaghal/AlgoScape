@@ -172,6 +172,7 @@ select {
 
 @media screen and (max-width: 768px) {
   .main {
+    height: 100vh;
     overflow-y: hidden;
 
     > div:first-child {
@@ -197,6 +198,7 @@ select {
       position: static;
       flex-shrink: 0;
       padding: 5px 0;
+      padding-bottom: 10px;
       font-size: 10px;
       opacity: 1;
       line-height: 1.2;

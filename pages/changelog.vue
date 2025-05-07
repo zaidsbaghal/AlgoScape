@@ -7,6 +7,35 @@
       regularly to stay informed about new features and improvements.
     </p>
 
+    <h2>Version 1.2.1</h2>
+    <ul>
+      <li>
+        Major improvements to Pathfinding on mobile devices:
+        <ul>
+          <li>The pathfinding grid now dynamically adjusts to fit your screen perfectly, ensuring a clean look without partial cells or unnecessary scrolling.</li>
+          <li>Moving the start and end points is now easier on touchscreens with a new "tap-to-select, tap-to-place" interaction.</li>
+          <li>The selected start or end point is now clearly highlighted when being moved on mobile.</li>
+          <li>Fixed an issue where the pathfinding grid might not initially use the full width on mobile.</li>
+          <li>Resolved a visual bug that could make extra start/end points briefly appear on mobile.</li>
+        </ul>
+      </li>
+      <li>
+        Enhanced the reliability and smoothness of pathfinding algorithm visualizations.
+      </li>
+      <li>
+        Improved stability of the Pathfinding visualization component.
+      </li>
+      <li>
+        Fixed an issue on mobile (especially Safari) where tapping buttons in the Sorting view could cause the page to zoom unintentionally.
+      </li>
+      <li>
+        Fine-tuned spacing for the copyright notice on mobile for a cleaner appearance.
+      </li>
+      <li>
+        Ensured the application consistently uses the full screen height on mobile devices for a more immersive experience.
+      </li>
+    </ul>
+
     <h2>Version 1.2.0</h2>
     <ul>
       <li>

@@ -45,7 +45,7 @@
           A*
         </button>
       </div>
-      <div class="graph-action">
+      <div class="graph-action" ref="graphActionRef">
         <div class="col" v-for="(col, index) in grid" :key="index">
           <GridNode
             v-for="node in col"
@@ -82,7 +82,9 @@ const props = defineProps({
   },
 });
 
-// Define Desktop and Mobile constants
+const NODE_SIZE = 26; // 25px (GridNode size) + 0.5px border * 2
+
+// Define Desktop and Mobile constants (Mobile ones are fallbacks if dynamic sizing fails)
 const DESKTOP_ROWS = 30;
 const DESKTOP_COLS = 70;
 const DESKTOP_START_X = 30;
@@ -90,226 +92,316 @@ const DESKTOP_START_Y = 15;
 const DESKTOP_END_X = 40;
 const DESKTOP_END_Y = 15;
 
-const MOBILE_ROWS = 25;
-const MOBILE_COLS = 15;
-const MOBILE_START_X = 3;
-const MOBILE_START_Y = 12;
-const MOBILE_END_X = 11;
-const MOBILE_END_Y = 12;
+const MOBILE_FALLBACK_ROWS = 20;
+const MOBILE_FALLBACK_COLS = 10;
+const MOBILE_FALLBACK_START_X = 2;
+const MOBILE_FALLBACK_START_Y = 9;
+const MOBILE_FALLBACK_END_X = 7;
+const MOBILE_FALLBACK_END_Y = 9;
 
-const rowNum = ref(props.isMobile ? MOBILE_ROWS : DESKTOP_ROWS);
-const colNum = ref(props.isMobile ? MOBILE_COLS : DESKTOP_COLS);
+const rowNum = ref(DESKTOP_ROWS);
+const colNum = ref(DESKTOP_COLS);
 const grid = ref([[]]);
-const startNode = ref(null);
-const endNode = ref(null);
 
-const startX = ref(props.isMobile ? MOBILE_START_X : DESKTOP_START_X);
-const startY = ref(props.isMobile ? MOBILE_START_Y : DESKTOP_START_Y);
-const endX = ref(props.isMobile ? MOBILE_END_X : DESKTOP_END_X);
-const endY = ref(props.isMobile ? MOBILE_END_Y : DESKTOP_END_Y);
+const startX = ref(DESKTOP_START_X);
+const startY = ref(DESKTOP_START_Y);
+const endX = ref(DESKTOP_END_X);
+const endY = ref(DESKTOP_END_Y);
+
+const graphActionRef = ref(null);
 
 const animations = ref([]);
-const defaultGraph = ref([]);
+// const defaultGraph = ref([]); // Not explicitly used, can be removed if not needed later
 const found = ref(false);
 const animSpeed = ref(10);
 const buttonDisable = ref(false);
-const mousePressed = ref(false);
+const mousePressed = ref(false); // For wall drawing
+
+// Desktop drag states
 const moveStart = ref(false);
 const moveEnd = ref(false);
-const prevNode = ref(null);
+
+// Mobile tap-to-move states
+const isMovingStartMobile = ref(false);
+const isMovingEndMobile = ref(false);
+
+const prevNodeClass = ref(null); // Stores class of node before mouseEnter (for desktop dragging)
 const viz = ref(false);
 
-onMounted(() => {
+
+const updateGridDimensionsAndInitialize = async () => {
+  // Visual cleanup of any lingering start/end classes from a previous render cycle
+  // This is important if this function runs multiple times during initialization (e.g. mobile with setTimeout)
+  if (grid.value && grid.value.length > 0 && grid.value[0].length > 0 && graphActionRef.value) {
+    // Use the *current* (potentially old) colNum/rowNum to iterate existing DOM if it exists
+    // This relies on colNum and rowNum reflecting the state of the currently rendered grid
+    // or using a broad sweep if they are not reliable (e.g. querySelectorAll)
+     const existingCols = graphActionRef.value.querySelectorAll('.col');
+     existingCols.forEach(colElement => {
+       const nodes = colElement.querySelectorAll('.box, .start, .end, .wall, .visited, .path, .fringe'); // Query all possible node states
+       nodes.forEach(nodeElement => {
+         if (nodeElement.classList.contains('start') || nodeElement.classList.contains('end')) {
+            nodeElement.className = 'box';
+         }
+       });
+     });
+  }
+
+  if (!props.isMobile) {
+    rowNum.value = DESKTOP_ROWS;
+    colNum.value = DESKTOP_COLS;
+    startX.value = DESKTOP_START_X;
+    startY.value = DESKTOP_START_Y;
+    endX.value = DESKTOP_END_X;
+    endY.value = DESKTOP_END_Y;
+  } else {
+    await nextTick();
+    const graphEl = graphActionRef.value;
+    if (graphEl && graphEl.clientHeight > 0 && graphEl.clientWidth > 0) {
+      const availableHeight = graphEl.clientHeight;
+      const availableWidth = graphEl.clientWidth;
+
+      const newRowNum = Math.max(1, Math.floor(availableHeight / NODE_SIZE));
+      const newColNum = Math.max(1, Math.floor(availableWidth / NODE_SIZE));
+
+      rowNum.value = newRowNum;
+      colNum.value = newColNum;
+
+      startX.value = Math.max(0, Math.min(Math.floor(newColNum / 4), newColNum - 1));
+      startY.value = Math.max(0, Math.min(Math.floor(newRowNum / 2), newRowNum - 1));
+      endX.value = Math.max(0, Math.min(Math.floor(newColNum * 3 / 4), newColNum - 1));
+      endY.value = Math.max(0, Math.min(Math.floor(newRowNum / 2), newRowNum - 1));
+      
+      if (newColNum <= 1 || newRowNum <= 1) { // Handle very small grids
+         startX.value = 0;
+         startY.value = 0;
+         endX.value = Math.max(0, newColNum -1);
+         endY.value = Math.max(0, newRowNum-1);
+      }
+
+      if (startX.value === endX.value && startY.value === endY.value) {
+        if (newColNum > 1) {
+          endX.value = Math.min(startX.value + 1, newColNum - 1);
+        } else if (newRowNum > 1) {
+           endY.value = Math.min(startY.value + 1, newRowNum - 1);
+        }
+      }
+    } else {
+      rowNum.value = MOBILE_FALLBACK_ROWS;
+      colNum.value = MOBILE_FALLBACK_COLS;
+      startX.value = MOBILE_FALLBACK_START_X;
+      startY.value = MOBILE_FALLBACK_START_Y;
+      endX.value = MOBILE_FALLBACK_END_X;
+      endY.value = MOBILE_FALLBACK_END_Y;
+    }
+  }
   initGrid();
+  await nextTick(); // Ensure grid DOM is created before setting start/end classes
+  setStart();
+  setEnd();
+};
+
+onMounted(async () => {
+  await updateGridDimensionsAndInitialize(); // Initial attempt
+
+  if (props.isMobile) {
+    // On mobile, sometimes the initial dimensions are not yet stable due to browser rendering flow.
+    // A small delay can help ensure we get the final dimensions.
+    setTimeout(async () => {
+      await updateGridDimensionsAndInitialize();
+    }, 100); // 100ms delay, can be adjusted
+  }
 });
 
 const initGrid = () => {
-  let newgrid = [];
-  for (let col = 0; col < colNum.value; col++) {
-    const currCol = [];
-    for (let row = 0; row < rowNum.value; row++) {
-      currCol.push(createNode(row, col));
+  let newGrid = [];
+  for (let c = 0; c < colNum.value; c++) {
+    const currentCol = [];
+    for (let r = 0; r < rowNum.value; r++) {
+      currentCol.push(createNode(r, c));
     }
-    newgrid.push(currCol);
+    newGrid.push(currentCol);
   }
-  grid.value = newgrid;
+  grid.value = newGrid;
 };
 
-nextTick(() => {
-  setStart();
-  setEnd();
-});
+const disableButtons = () => { buttonDisable.value = true; };
+const enableButtons = () => { buttonDisable.value = false; };
 
-const disableButtons = () => {
-  buttonDisable.value = true;
-};
-
-const enableButtons = () => {
-  buttonDisable.value = false;
+const clearSelectedForMoveMobile = () => {
+    const oldStartNodeEl = document.getElementById(`Node-${startX.value}-${startY.value}`);
+    if (oldStartNodeEl) oldStartNodeEl.classList.remove('selected-for-move');
+    const oldEndNodeEl = document.getElementById(`Node-${endX.value}-${endY.value}`);
+    if (oldEndNodeEl) oldEndNodeEl.classList.remove('selected-for-move');
+    isMovingStartMobile.value = false;
+    isMovingEndMobile.value = false;
 };
 
 const mouseEnter = (node) => {
-  prevNode.value = document.getElementById(node.id).className.slice();
-  if (moveStart.value) {
+  if (props.isMobile || viz.value) return; 
+
+  prevNodeClass.value = document.getElementById(node.id)?.className || 'box';
+  if (moveStart.value && grid.value[node.col] && grid.value[node.col][node.row]) {
     document.getElementById(node.id).className = "start";
-  }
-  if (moveEnd.value) {
+  } else if (moveEnd.value && grid.value[node.col] && grid.value[node.col][node.row]) {
     document.getElementById(node.id).className = "end";
-  }
-  if (mousePressed.value) {
+  } else if (mousePressed.value) { 
     makeWall(node);
   }
 };
 
-// function is called when we leave a node
 const mouseOut = (node) => {
-  // Reset old node
-  if (moveStart.value == true) {
-    if (prevNode.value === "start") {
-      node.isStart = false;
-      document.getElementById(node.id).className = "box";
+  if (props.isMobile || viz.value) return; 
+
+  const element = document.getElementById(node.id);
+  if (!element) return;
+
+  if (moveStart.value) {
+    if (node.col === startX.value && node.row === startY.value) {
+      element.className = "start"; 
     } else {
-      document.getElementById(node.id).className = prevNode.value;
+      element.className = prevNodeClass.value === "start" ? "box" : prevNodeClass.value;
     }
-  } else if (moveEnd.value == true) {
-    if (prevNode.value === "end") {
-      node.isEnd = false;
-      document.getElementById(node.id).className = "box";
+  } else if (moveEnd.value) {
+     if (node.col === endX.value && node.row === endY.value) {
+      element.className = "end"; 
     } else {
-      document.getElementById(node.id).className = prevNode.value;
+      element.className = prevNodeClass.value === "end" ? "box" : prevNodeClass.value;
     }
   }
 };
 
-//function is called when the mouse is pressed down on a node
 const mouseDown = (node) => {
-  if (viz.value) {
-    return;
-  }
-  let element = document.getElementById(node.id);
-  if (element.className === "start") {
-    moveStart.value = true;
-  } else if (element.className === "end") {
-    moveEnd.value = true;
-  } else {
-    mousePressed.value = true;
-    makeWall(node);
+  if (viz.value) return;
+
+  if (props.isMobile) {
+    const currentElement = document.getElementById(node.id);
+    if (!currentElement) return;
+
+    if (isMovingStartMobile.value) {
+      if (node.isEnd || node.isWall) return; 
+      
+      grid.value[startX.value][startY.value].isStart = false;
+      const oldStartEl = document.getElementById(`Node-${startX.value}-${startY.value}`);
+      if(oldStartEl) oldStartEl.className = "box";
+      
+      startX.value = node.col;
+      startY.value = node.row;
+      grid.value[startX.value][startY.value].isStart = true;
+      grid.value[startX.value][startY.value].ddist = 0; 
+      currentElement.className = "start";
+      clearSelectedForMoveMobile();
+    } else if (isMovingEndMobile.value) {
+      if (node.isStart || node.isWall) return; 
+      
+      grid.value[endX.value][endY.value].isEnd = false;
+      const oldEndEl = document.getElementById(`Node-${endX.value}-${endY.value}`);
+      if(oldEndEl) oldEndEl.className = "box";
+      
+      endX.value = node.col;
+      endY.value = node.row;
+      grid.value[endX.value][endY.value].isEnd = true;
+      currentElement.className = "end";
+      clearSelectedForMoveMobile();
+    } else { 
+      if (node.isStart) {
+        isMovingStartMobile.value = true;
+        isMovingEndMobile.value = false; 
+        currentElement.classList.add('selected-for-move');
+      } else if (node.isEnd) {
+        isMovingEndMobile.value = true;
+        isMovingStartMobile.value = false; 
+        currentElement.classList.add('selected-for-move');
+      } else { 
+        mousePressed.value = true;
+        makeWall(node);
+      }
+    }
+  } else { // Desktop drag logic
+    let element = document.getElementById(node.id);
+    if (!element) return;
+    if (element.className === "start") {
+      moveStart.value = true;
+    } else if (element.className === "end") {
+      moveEnd.value = true;
+    } else {
+      mousePressed.value = true;
+      makeWall(node);
+    }
   }
 };
 
-// function is called when we release the mouse press on a node
-const mouseUp = (node) => {
-  if (moveStart.value === true) {
-    node.isStart = true;
-    document.getElementById(node.id).className = "start";
-    startY.value = node.row;
-    startX.value = node.col;
-    moveStart.value = false;
-  } else if (moveEnd.value === true) {
-    node.isEnd = true;
-    document.getElementById(node.id).className = "end";
-    endY.value = node.row;
-    endX.value = node.col;
-    moveEnd.value = false;
+const mouseUp = (node) => { 
+  if (props.isMobile) {
+    mousePressed.value = false; 
+  } else { 
+    if (moveStart.value) {
+      if(grid.value[startX.value] && grid.value[startX.value][startY.value]) { // Check if old start exists
+        grid.value[startX.value][startY.value].isStart = false;
+      }
+      startX.value = node.col;
+      startY.value = node.row;
+      grid.value[startX.value][startY.value].isStart = true;
+      grid.value[startX.value][startY.value].ddist = 0; 
+      document.getElementById(node.id).className = "start";
+      moveStart.value = false;
+    } else if (moveEnd.value) {
+      if(grid.value[endX.value] && grid.value[endX.value][endY.value]) { // Check if old end exists
+         grid.value[endX.value][endY.value].isEnd = false;
+      }
+      endX.value = node.col;
+      endY.value = node.row;
+      grid.value[endX.value][endY.value].isEnd = true;
+      document.getElementById(node.id).className = "end";
+      moveEnd.value = false;
+    }
+    mousePressed.value = false; 
   }
-  mousePressed.value = false;
 };
 
-// Stylize wall of box (Does not set the nodes isWall data yet for speed purposes)
 const makeWall = (node) => {
   let element = document.getElementById(node.id);
-  if (
-    element.className === "start" ||
-    element.className === "end" ||
-    element.className === "visited" ||
-    element.className === "path" ||
-    viz.value
-  ) {
+  if (!element || node.isStart || node.isEnd || viz.value) {
     return;
+  }
+  // Check underlying data first, then update class
+  if (grid.value[node.col][node.row].isWall) {
+    element.className = "box";
+    grid.value[node.col][node.row].isWall = false;
   } else {
-    let element = document.getElementById(node.id);
-    if (element.className === "wall") {
-      element.className = "box";
-    } else {
-      element.className = "wall";
-    }
+    element.className = "wall";
+    grid.value[node.col][node.row].isWall = true;
   }
 };
 
-// Initialize the start node
 const setStart = () => {
-  // Use the initial values based on mobile/desktop for resetting
-  const initialStartX = props.isMobile ? MOBILE_START_X : DESKTOP_START_X;
-  const initialStartY = props.isMobile ? MOBILE_START_Y : DESKTOP_START_Y;
-
-  startX.value = initialStartX;
-  startY.value = initialStartY;
-  let id = grid.value[initialStartX][initialStartY].id;
-  grid.value[initialStartX][initialStartY].isStart = true;
-  grid.value[initialStartX][initialStartY].ddist = 0;
-  const element = document.getElementById(id);
-  if (element) {
-    element.className = "start";
+  if (grid.value[startX.value] && grid.value[startX.value][startY.value]) {
+    let node = grid.value[startX.value][startY.value];
+    node.isStart = true;
+    node.ddist = 0;
+    const element = document.getElementById(node.id);
+    if (element) element.className = "start";
+    else console.error(`Element with ID ${node.id} not found for setStart`);
   } else {
-    console.error(`Element with ID ${id} not found`);
+    console.error("Start node position out of bounds:", startX.value, startY.value, colNum.value, rowNum.value);
   }
 };
 
-// Initialize the end node
 const setEnd = () => {
-  // Use the initial values based on mobile/desktop for resetting
-  const initialEndX = props.isMobile ? MOBILE_END_X : DESKTOP_END_X;
-  const initialEndY = props.isMobile ? MOBILE_END_Y : DESKTOP_END_Y;
-
-  endX.value = initialEndX;
-  endY.value = initialEndY;
-  let id = grid.value[initialEndX][initialEndY].id;
-  grid.value[initialEndX][initialEndY].isEnd = true;
-  const element = document.getElementById(id);
-  if (element) {
-    element.className = "end";
+ if (grid.value[endX.value] && grid.value[endX.value][endY.value]) {
+    let node = grid.value[endX.value][endY.value];
+    node.isEnd = true;
+    const element = document.getElementById(node.id);
+    if (element) element.className = "end";
+    else console.error(`Element with ID ${node.id} not found for setEnd`);
   } else {
-    console.error(`Element with ID ${id} not found`);
+    console.error("End node position out of bounds:", endX.value, endY.value, colNum.value, rowNum.value);
   }
 };
 
-// Create the node object for a cell
 const createNode = (row, col) => {
-  if (col === startX.value && row === startY.value) {
-    return {
-      col,
-      row,
-      isStart: true,
-      isEnd: false,
-      isWall: false,
-      visited: false,
-      ref: "Node-" + col + "-" + row,
-      id: "Node-" + col + "-" + row,
-      parent: null,
-      ddist: 0,
-      g: Number.POSITIVE_INFINITY,
-      h: Number.POSITIVE_INFINITY,
-      f: Number.POSITIVE_INFINITY,
-      closed: false,
-    };
-  } else if (col === endX.value && row === endY.value) {
-    return {
-      col,
-      row,
-      isStart: false,
-      isEnd: true,
-      isWall: false,
-      visited: false,
-      ref: "Node-" + col + "-" + row,
-      id: "Node-" + col + "-" + row,
-      parent: null,
-      ddist: Number.POSITIVE_INFINITY,
-      g: Number.POSITIVE_INFINITY,
-      h: Number.POSITIVE_INFINITY,
-      f: Number.POSITIVE_INFINITY,
-      closed: false,
-    };
-  }
+  // Always create a generic node. 
+  // isStart, isEnd, and ddist for start node are handled by setStart()/setEnd()
   return {
     col,
     row,
@@ -317,10 +409,10 @@ const createNode = (row, col) => {
     isEnd: false,
     isWall: false,
     visited: false,
-    ref: "Node-" + col + "-" + row,
-    id: "Node-" + col + "-" + row,
+    ref: `Node-${col}-${row}`,
+    id: `Node-${col}-${row}`,
     parent: null,
-    ddist: Number.POSITIVE_INFINITY,
+    ddist: Number.POSITIVE_INFINITY, 
     g: Number.POSITIVE_INFINITY,
     h: Number.POSITIVE_INFINITY,
     f: Number.POSITIVE_INFINITY,
@@ -328,365 +420,251 @@ const createNode = (row, col) => {
   };
 };
 
-// Clears all walls from the grid
-const resetGrid = () => {
+const resetGrid = async () => {
   viz.value = false;
-  for (let col = 0; col < colNum.value; col++) {
-    for (let row = 0; row < rowNum.value; row++) {
-      let node = grid.value[col][row];
-      let eleClass = document.getElementById(node.id).className;
-      node.isWall = false;
-      node.visited = false;
-      node.closed = false;
-      node.isStart = false;
-      node.isEnd = false;
-      node.ddist = Number.POSITIVE_INFINITY;
-      node.f = Number.POSITIVE_INFINITY;
-      node.g = Number.POSITIVE_INFINITY;
-      node.h = Number.POSITIVE_INFINITY;
-      document.getElementById(node.id).className = "box";
+  buttonDisable.value = true; // Disable buttons during reset
+  clearSelectedForMoveMobile(); 
+  await updateGridDimensionsAndInitialize(); // This recalculates dimensions, calls initGrid, setStart, setEnd
+  
+  // After updateGridDimensionsAndInitialize, the grid data (isWall, etc.) is fresh
+  // but we need to ensure all visual styles reflect this, beyond just start/end.
+  for (let c = 0; c < colNum.value; c++) {
+    for (let r = 0; r < rowNum.value; r++) {
+      if (grid.value[c] && grid.value[c][r]) {
+        let node = grid.value[c][r];
+        const element = document.getElementById(node.id);
+        if (element) {
+          if (node.isStart) {
+            element.className = 'start';
+          } else if (node.isEnd) {
+            element.className = 'end';
+          } else if (node.isWall) { // Should be false after initGrid called by update...
+             element.className = 'wall'; // This case should ideally not happen if initGrid is correct
+          } else {
+            element.className = 'box';
+          }
+        }
+      }
     }
   }
-  setStart();
-  setEnd();
+  enableButtons(); 
 };
+
 
 const resetVis = () => {
   viz.value = false;
-  for (let col = 0; col < colNum.value; col++) {
-    for (let row = 0; row < rowNum.value; row++) {
-      let node = grid.value[col][row];
-      let eleClass = document.getElementById(node.id).className;
-      node.visited = false;
-      node.closed = false;
-      node.ddist = Number.POSITIVE_INFINITY; // Reset Dijkstra Distance
-      node.f = Number.POSITIVE_INFINITY;
-      node.g = Number.POSITIVE_INFINITY;
-      node.h = Number.POSITIVE_INFINITY;
-      if (eleClass === "start" || eleClass === "end") {
-        if (eleClass == "start") {
-          node.ddist = 0;
+  clearSelectedForMoveMobile(); 
+  for (let c = 0; c < colNum.value; c++) {
+    for (let r = 0; r < rowNum.value; r++) {
+      if (grid.value[c] && grid.value[c][r]) {
+        let node = grid.value[c][r];
+        let element = document.getElementById(node.id);
+        if (!element) continue;
+
+        node.visited = false;
+        node.closed = false;
+        node.parent = null; // Important for re-running algos
+        // ddist, f, g, h are reset here for non-start/end nodes
+        if (!node.isStart) node.ddist = Number.POSITIVE_INFINITY; else node.ddist = 0;
+        node.f = Number.POSITIVE_INFINITY;
+        node.g = Number.POSITIVE_INFINITY;
+        node.h = Number.POSITIVE_INFINITY;
+
+        if (node.isStart) {
+          element.className = "start";
+        } else if (node.isEnd) {
+          element.className = "end";
+        } else if (!node.isWall) { 
+          element.className = "box";
         }
-        continue;
-      }
-      if (eleClass != "wall") {
-        document.getElementById(node.id).className = "box";
+        // Walls remain walls visually and in data
       }
     }
   }
+  enableButtons(); 
 };
 
-const depthFirstButton = () => {
-  if (viz.value) {
-    return;
-  }
+const runAlgorithm = (algoFunction, ...args) => {
+  if (viz.value || buttonDisable.value) return;
+  clearSelectedForMoveMobile();
+  resetVis(); // Clear previous visualization before starting a new one
   disableButtons();
   viz.value = true;
+  
+  const pathAnimations = []; 
   try {
-    animations.value = dfs(
-      startX.value,
-      startY.value,
-      grid.value,
-      animations.value,
-      rowNum.value,
-      colNum.value
-    );
+    algoFunction(grid.value, startX.value, startY.value, endX.value, endY.value, pathAnimations, rowNum.value, colNum.value, ...args);
   } catch (err) {
+    console.error(`Error in ${algoFunction.name}:`, err);
     enableButtons();
+    viz.value = false;
+    return;
   }
 
-  for (let i = 0; i < animations.value.length; i++) {
-    let command = animations.value[i][0]; // current command
-    let x = animations.value[i][1]; // current x
-    let y = animations.value[i][2]; // current y
+  let animationTimeout = 0;
+  for (let i = 0; i < pathAnimations.length; i++) {
+    animationTimeout = (i + 1) * animSpeed.value;
+    const animationStep = pathAnimations[i];
+    if (!animationStep) continue;
+    
+    const command = animationStep[0];
+    const x = animationStep[1];
+    const y = animationStep[2];
     let current;
     try {
-      current = grid.value[x][y]; // current node object
-    } catch (err) {
-      enableButtons();
-      continue;
-    }
+      current = grid.value[x][y];
+    } catch (err) { continue; }
 
-    if (command === "curr") {
-      setTimeout(function () {
-        document.getElementById(current.id).className = "visited";
-      }, i * animSpeed.value);
-    } else if (command === "visit") {
-      setTimeout(function () {
-        document.getElementById(current.id).className = "path";
-      }, i * animSpeed.value);
-    } else {
-      new Promise((resolve, reject) => {
-        setTimeout(function () {
-          resolve();
-        }, i * animSpeed.value);
-      })
-        .then(() => {
-          animations.value = [];
-          enableButtons();
-        })
-        .catch(() => {
-          enableButtons();
-        });
-      break;
-    }
+    if (current.isStart || current.isEnd) continue; // Don't animate start/end nodes themselves
+
+    setTimeout(() => {
+      const el = document.getElementById(current.id);
+      if(el) {
+        if (command === "curr" || command === "visit") {
+          el.className = "visited";
+        } else if (command === "path") {
+          el.className = "path";
+        } else if (command === "fringe") {
+          el.className = "fringe";
+        }
+      }
+    }, i * animSpeed.value);
   }
+  
+  setTimeout(() => {
+      enableButtons();
+      viz.value = false; 
+      // Optionally check if path was found (e.g., grid.value[endX.value][endY.value].parent)
+  }, animationTimeout + animSpeed.value); 
+};
+
+
+const depthFirstButton = () => {
+  // DFS might not use endX, endY but pass them for consistency if runAlgorithm expects them
+  runAlgorithm((grid, sX, sY, _eX, _eY, anims, rN, cN) => dfs(sX, sY, grid, anims, rN, cN));
 };
 
 const breadthFirstButton = () => {
-  if (viz.value) {
-    return;
-  }
-  viz.value = true;
-  disableButtons();
-  animations.value = bfs(
-    startX.value,
-    startY.value,
-    grid.value,
-    animations.value,
-    rowNum.value,
-    colNum.value
-  );
-  for (let i = 0; i < animations.value.length; i++) {
-    if (animations.value[i] == null || animations.value[i] === "undefined") {
-      continue;
-    }
-    let command = animations.value[i][0]; // current command
-    let x = animations.value[i][1]; // current x
-    let y = animations.value[i][2]; // current y
-
-    let current;
-    try {
-      current = grid.value[x][y]; // current node object
-    } catch (err) {
-      enableButtons();
-      continue;
-    }
-
-    if (command === "curr") {
-      setTimeout(function () {
-        document.getElementById(current.id).className = "visited";
-      }, i * animSpeed.value);
-    } else if (command === "visit") {
-      setTimeout(function () {
-        document.getElementById(current.id).className = "visited";
-      }, i * animSpeed.value);
-    } else if (command === "path") {
-      new Promise((resolve, reject) => {
-        setTimeout(function () {
-          document.getElementById(current.id).className = "path";
-          resolve();
-        }, i * animSpeed.value);
-      }).then(() => {
-        animations.value = [];
-        enableButtons();
-        i = animations.value.length;
-      });
-    } else {
-      // End command
-      i = animations.value.length;
-      animations.value = [];
-    }
-  }
+  runAlgorithm((grid, sX, sY, _eX, _eY, anims, rN, cN) => bfs(sX, sY, grid, anims, rN, cN));
 };
 
 const dijkstraButton = () => {
-  if (viz.value) {
-    return;
-  }
-  viz.value = true;
-  disableButtons();
-  var pq = [];
-  animations.value = dijkstra(
-    grid.value,
-    startX.value,
-    startY.value,
-    animations.value,
-    pq,
-    rowNum.value,
-    colNum.value
-  );
-
-  for (let i = 0; i < animations.value.length; i++) {
-    let command = animations.value[i][0]; // current command
-    let x = animations.value[i][1]; // current x
-    let y = animations.value[i][2]; // current y
-    let current;
-    try {
-      current = grid.value[x][y]; // current node object
-    } catch (err) {
-      enableButtons();
-      continue;
-    }
-
-    if (command === "curr") {
-      setTimeout(function () {
-        document.getElementById(current.id).className = "visited";
-      }, i * animSpeed.value);
-    } else if (command === "visit") {
-      setTimeout(function () {
-        document.getElementById(current.id).className = "visited";
-      }, i * animSpeed.value);
-    } else if (command === "path") {
-      new Promise((resolve, reject) => {
-        setTimeout(function () {
-          document.getElementById(current.id).className = "path";
-          resolve();
-        }, i * animSpeed.value);
-      }).then(() => {
-        pq = [];
-        animations.value = [];
-        enableButtons();
-      });
-    } else {
-      // End command
-      i = animations.value.length;
-      pq = [];
-      animations.value = [];
-      return;
-    }
-  }
+  runAlgorithm((grid, sX, sY, _eX, _eY, anims, rN, cN) => dijkstra(grid, sX, sY, anims, rN, cN));
 };
 
 const aStarButton = () => {
-  if (viz.value) {
-    return;
-  }
-  viz.value = true;
-  disableButtons();
-  var pq = [];
-
-  animations.value = aStar(
-    grid.value,
-    startX.value,
-    startY.value,
-    endX.value,
-    endY.value,
-    animations.value,
-    rowNum.value,
-    colNum.value
-  );
-
-  for (let i = 0; i < animations.value.length; i++) {
-    let command = animations.value[i][0]; // current command
-    let x = animations.value[i][1]; // current x
-    let y = animations.value[i][2]; // current y
-    let current;
-    try {
-      current = grid.value[x][y]; // current node object
-    } catch (err) {
-      enableButtons();
-      continue;
-    }
-    if (command === "visit") {
-      setTimeout(function () {
-        document.getElementById(current.id).className = "visited";
-      }, i * animSpeed.value);
-    } else if (command === "fringe") {
-      setTimeout(function () {
-        document.getElementById(current.id).className = "fringe";
-      }, i * animSpeed.value);
-    } else if (command === "path") {
-      new Promise((resolve, reject) => {
-        setTimeout(function () {
-          document.getElementById(current.id).className = "path";
-          resolve();
-        }, i * animSpeed.value);
-      }).then(() => {
-        animations.value = [];
-        enableButtons();
-      });
-    } else {
-      // End command
-      i = animations.value.length;
-      pq = [];
-      animations.value = [];
-      return;
-    }
-  }
+  runAlgorithm(aStar); // aStar uses all standard parameters
 };
+
+
+// Make sure your imported algorithm functions (dfs, bfs, dijkstra, aStar)
+// are adapted to:
+// 1. Accept parameters like: (grid, startX, startY, endX, endY, animationsArray, numRows, numCols, ...anyOtherSpecificParams)
+//    - Not all algos use endX/endY (like DFS, BFS for just traversal), adjust wrappers if needed.
+// 2. Push [command, col, row] tuples into the animationsArray they receive.
+//    - e.g., animationsArray.push(["curr", currentX, currentY]);
+//    - e.g., animationsArray.push(["path", pathNodeX, pathNodeY]);
+// 3. NOT try to directly manipulate DOM or use global/component animation arrays.
+// 4. Correctly update node properties like .parent, .ddist, .g, .h, .f, .closed as needed for their logic.
+
 </script>
 <style lang="scss" scoped>
 @use "sass:color";
-@use "./assets/main.scss" as *;
+@use "~/assets/main.scss" as *; // Ensure this path is correct
+
 .path-container {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: center; 
   flex: 1;
-  min-height: 0;
-  overflow-y: hidden;
+  min-height: 0; 
+  overflow-y: hidden; 
+  box-sizing: border-box;
+
   .function-buttons {
-    padding-bottom: 3rem;
+    padding-bottom: 1rem; 
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
+    flex-shrink: 0; 
   }
+
   .graph-action {
-    border: 1px solid;
-    width: fit-content;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transform: rotateX(180deg);
+    border: 1px solid $gunmetal;
+    width: fit-content; 
+    display: flex; 
+    transform: rotateX(180deg); 
+    box-sizing: border-box;
   }
 }
 
-.array-bar {
-  width: 15px;
-  background-color: $gunmetal;
-  display: inline-block;
-  margin: 0 2px;
+.col { 
+  display: flex;
+  flex-direction: column;
 }
+
 
 .toolbar-button {
-  margin: 15px;
+  margin: 10px; 
   background-color: $gunmetal;
   border: none;
   color: $white-smoke;
-  padding: 10px 16px;
+  padding: 8px 14px; 
   text-align: center;
   display: inline-block;
-  font-size: 16px;
+  font-size: 15px; 
   cursor: pointer;
   border-radius: 5px;
+  transition: background-color 0.2s ease;
+
+  &:disabled {
+    background-color: lighten($gunmetal, 20%);
+    cursor: not-allowed;
+  }
 }
 
-.toolbar-button:hover {
+.toolbar-button:hover:not(:disabled) {
   background-color: color.adjust($chestnut, $lightness: -10%) !important;
 }
 
 .reset-grid-button,
 .reset-vis-button {
-  background-color: $chestnut !important;
+  background-color: $chestnut !important; 
 }
 
-.reset-grid-button:hover,
-.reset-vis-button:hover {
+.reset-grid-button:hover:not(:disabled),
+.reset-vis-button:hover:not(:disabled) {
   background-color: color.adjust($chestnut, $lightness: -10%) !important;
 }
 
 @media screen and (max-width: 768px) {
   .path-container {
-    justify-content: flex-start;
-    overflow: hidden;
-    border: none;
+    justify-content: flex-start; 
+    align-items: stretch; 
+
     .function-buttons {
-      flex-shrink: 0;
-      padding-bottom: 0.5rem;
+      padding-bottom: 0.5rem; 
       .toolbar-button {
         margin: 5px;
+        padding: 6px 10px;
+        font-size: 12px; 
       }
     }
+
     .graph-action {
-      max-width: 100vw;
-      overflow-x: hidden;
-      flex: 1;
-      min-height: 0;
-      width: 100%;
-      border: none;
+      flex: 1; 
+      min-height: 0; 
+      margin: 10px; 
+      overflow: hidden; 
+      width: auto; 
+      border: 1px solid $gunmetal; 
     }
   }
 }
+
+:deep(.selected-for-move) { 
+  outline: 2px solid $mantis !important; 
+  outline-offset: -2px; 
+}
+
 </style>

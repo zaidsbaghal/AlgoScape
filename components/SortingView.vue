@@ -157,9 +157,9 @@ const newArray = () => {
 
 const heightFactor = computed(() => {
   if (props.isMobile) {
-    return 0.3; // Adjusted factor for mobile, using the prop
+    return 0.35; // Keep latest mobile factor
   }
-  // Desktop logic remains, can be simplified if props.isMobile is exhaustive
+  // Desktop logic remains
   if (typeof window !== "undefined") {
     var mqDesktop = window.matchMedia(
       "(min-device-width: 1200px) and (max-device-width: 1600px)"
@@ -545,15 +545,12 @@ const insertionSortButton = () => {
   width: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  flex: 1;
-  min-height: 0;
-  overflow-y: hidden;
+  height: auto; // Keep latest desktop style
   .function-buttons {
-    display: flex; // Added for easier flex-direction change
-    flex-wrap: wrap; // Allow buttons to wrap
-    justify-content: center; // Center buttons when wrapped
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 }
 
@@ -591,7 +588,7 @@ const insertionSortButton = () => {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  height: 75vh;
+  height: 65vh; // Keep user's desktop height adjustment
   padding: 3rem;
 }
 
@@ -631,7 +628,7 @@ const insertionSortButton = () => {
   }
 
   .active-window {
-    height: 75vh;
+    height: 65vh; // Keep user's desktop height adjustment
     padding: 1rem;
   }
 
@@ -656,6 +653,10 @@ const insertionSortButton = () => {
 @media screen and (max-width: 768px) {
   .sort-container {
     justify-content: flex-start;
+    height: 65vh !important; // Keep user's mobile height adjustment
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
     .function-buttons {
       flex-shrink: 0;
       .toolbar-button {
@@ -671,13 +672,13 @@ const insertionSortButton = () => {
     min-height: 0;
     width: 100%;
     box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
+    display: flex; // Keep display:flex for mobile .active-window
+    flex-direction: column; // Keep direction for mobile .active-window
   }
   .array-container {
     overflow-x: auto;
-    flex: 1;
-    min-height: 0;
+    // flex: 1; Should NOT have flex:1 for mobile
+    // min-height: 0; Should NOT have min-height:0 for mobile
   }
   .array-bar {
     width: 8px;

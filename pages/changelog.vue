@@ -7,20 +7,29 @@
       regularly to stay informed about new features and improvements.
     </p>
 
-    <h2>1.1.0</h2>
+    <h2>Version 1.2.0</h2>
+    <ul>
+      <li>
+        Major revamp of the mobile view for full responsiveness and usability
+        across all devices.
+      </li>
+      <li>
+        Implemented significant code quality improvements and refactoring for
+        better maintainability and performance.
+      </li>
+      <li>Added a new site logo for improved branding.</li>
+      <li>
+        Optimized font loading strategy for faster initial page load and
+        rendering.
+      </li>
+    </ul>
+
+    <h2>Version 1.1.0</h2>
     <ul>
       <li>
         Updated to Nuxt 3.17; improvements can be read about
         <a href="https://nuxt.com/blog/v3-17" target="_blank">here</a>.
       </li>
-    </ul>
-    <h2>1.0.1</h2>
-    <ul>
-      <li>Made minor style optimizations for improved visual consistency.</li>
-      <li>
-        Implemented small performance optimizations for faster load times.
-      </li>
-      <li>Migrated to modern code practices for better maintainability.</li>
     </ul>
 
     <h2>1.0.0</h2>

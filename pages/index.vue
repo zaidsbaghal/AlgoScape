@@ -2,6 +2,9 @@
   <div class="main">
     <client-only>
       <div>
+        <div class="logo-container">
+          <Logo />
+        </div>
         <div class="algorithm-container">
           <div class="select-container">
             <select
@@ -59,6 +62,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
+import Logo from "~/components/Logo.vue";
 
 // Computed property
 const isMobile = computed(() => {
@@ -91,6 +95,11 @@ watch(AlgoCategory, (newCategory) => {
 
 <style lang="scss">
 @use "./assets/main.scss" as *;
+.logo-container {
+  display: flex;
+  justify-content: center;
+  padding: 0.5rem 0;
+}
 .mobile-view {
   height: 100vh;
   display: flex;
@@ -179,8 +188,8 @@ select {
       margin-bottom: 0.5rem;
       .algo-select {
         height: auto;
-        padding: 10px 15px;
-        font-size: 24px;
+        padding: 18px 25px;
+        font-size: 34px;
       }
     }
 
@@ -188,7 +197,7 @@ select {
       position: static;
       flex-shrink: 0;
       padding: 5px 0;
-      font-size: 8px;
+      font-size: 10px;
       opacity: 1;
       line-height: 1.2;
       width: 100%;
@@ -203,6 +212,7 @@ select {
     div[v-show="AlgoCategory === 'pathfinding'"] {
       flex: 1;
       display: flex;
+      flex-direction: column;
       min-height: 0;
       overflow-y: hidden;
     }

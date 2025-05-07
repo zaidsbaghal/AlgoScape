@@ -3,7 +3,7 @@ import { defineNuxtConfig } from "nuxt/config";
 export default defineNuxtConfig({
   css: ["~/assets/main.scss"],
   plugins: [],
-  modules: ["@pinia/nuxt", "nuxt-gtag"],
+  modules: ["@pinia/nuxt", "nuxt-gtag", "@nuxt/fonts"],
   build: {},
   compatibilityDate: "2025-01-13",
   app: {

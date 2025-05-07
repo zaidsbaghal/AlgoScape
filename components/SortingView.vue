@@ -657,12 +657,14 @@ const insertionSortButton = () => {
     -webkit-user-select: none; /* Safari */
     -ms-user-select: none; /* IE 10 and IE 11 */
     user-select: none; /* Standard syntax */
+    -webkit-touch-callout: none; /* Prevent callout menu on long press */
     .function-buttons {
       flex-shrink: 0;
       .toolbar-button {
         margin: 5px;
         padding: 8px 12px;
         font-size: 14px;
+        touch-action: manipulation; /* Prevent double-tap to zoom */
       }
     }
   }

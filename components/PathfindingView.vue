@@ -385,23 +385,39 @@ const mouseUp = (node) => {
     mousePressed.value = false;
   } else {
     if (moveStart.value) {
-      if (grid.value[startX.value] && grid.value[startX.value][startY.value]) {
-        // Check if old start exists
-        grid.value[startX.value][startY.value].isStart = false;
+      const oldStartX = startX.value;
+      const oldStartY = startY.value;
+      // Check if old start exists in grid data and visually reset it
+      if (grid.value[oldStartX] && grid.value[oldStartX][oldStartY]) {
+        grid.value[oldStartX][oldStartY].isStart = false;
+        const oldStartElement = document.getElementById(
+          `Node-${oldStartX}-${oldStartY}`
+        );
+        if (oldStartElement) oldStartElement.className = "box"; // Reset visual class
       }
+      // Update coordinates to new node
       startX.value = node.col;
       startY.value = node.row;
+      // Update new start node data & visual
       grid.value[startX.value][startY.value].isStart = true;
       grid.value[startX.value][startY.value].ddist = 0;
       document.getElementById(node.id).className = "start";
       moveStart.value = false;
     } else if (moveEnd.value) {
-      if (grid.value[endX.value] && grid.value[endX.value][endY.value]) {
-        // Check if old end exists
-        grid.value[endX.value][endY.value].isEnd = false;
+      const oldEndX = endX.value;
+      const oldEndY = endY.value;
+      // Check if old end exists in grid data and visually reset it
+      if (grid.value[oldEndX] && grid.value[oldEndX][oldEndY]) {
+        grid.value[oldEndX][oldEndY].isEnd = false;
+        const oldEndElement = document.getElementById(
+          `Node-${oldEndX}-${oldEndY}`
+        );
+        if (oldEndElement) oldEndElement.className = "box"; // Reset visual class
       }
+      // Update coordinates to new node
       endX.value = node.col;
       endY.value = node.row;
+      // Update new end node data & visual
       grid.value[endX.value][endY.value].isEnd = true;
       document.getElementById(node.id).className = "end";
       moveEnd.value = false;

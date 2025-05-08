@@ -559,7 +559,7 @@ const insertionSortButton = () => {
 }
 
 .toolbar-button {
-  margin: 15px;
+  margin: 10px;
   background-color: $gunmetal;
   border: none;
   color: $white-smoke;

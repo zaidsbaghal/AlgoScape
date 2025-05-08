@@ -7,35 +7,39 @@
           :disabled="buttonDisable"
           v-on:click="resetGrid"
         >
-          Reset Grid
+          <span style="display: flex; align-items: center; gap: 5px">
+            <Icon name="ion:grid-outline" /> Reset Grid
+          </span>
         </button>
         <button
           class="toolbar-button reset-vis-button"
           :disabled="buttonDisable"
           v-on:click="resetVis"
         >
-          Reset Visualization
+          <span style="display: flex; align-items: center; gap: 5px">
+            <Icon name="ion:refresh-outline" /> Reset Visualization
+          </span>
         </button>
         <button
           class="toolbar-button"
           :disabled="buttonDisable"
           v-on:click="depthFirstButton"
         >
-          Depth First
+          DFS
         </button>
         <button
           class="toolbar-button"
           :disabled="buttonDisable"
           v-on:click="breadthFirstButton"
         >
-          Breadth First
+          BFS
         </button>
         <button
           class="toolbar-button"
           :disabled="buttonDisable"
           v-on:click="dijkstraButton"
         >
-          Dijkstra's
+          Dijkstra
         </button>
         <button
           class="toolbar-button"
@@ -128,23 +132,32 @@ const isMovingEndMobile = ref(false);
 const prevNodeClass = ref(null); // Stores class of node before mouseEnter (for desktop dragging)
 const viz = ref(false);
 
-
 const updateGridDimensionsAndInitialize = async () => {
   // Visual cleanup of any lingering start/end classes from a previous render cycle
   // This is important if this function runs multiple times during initialization (e.g. mobile with setTimeout)
-  if (grid.value && grid.value.length > 0 && grid.value[0].length > 0 && graphActionRef.value) {
+  if (
+    grid.value &&
+    grid.value.length > 0 &&
+    grid.value[0].length > 0 &&
+    graphActionRef.value
+  ) {
     // Use the *current* (potentially old) colNum/rowNum to iterate existing DOM if it exists
     // This relies on colNum and rowNum reflecting the state of the currently rendered grid
     // or using a broad sweep if they are not reliable (e.g. querySelectorAll)
-     const existingCols = graphActionRef.value.querySelectorAll('.col');
-     existingCols.forEach(colElement => {
-       const nodes = colElement.querySelectorAll('.box, .start, .end, .wall, .visited, .path, .fringe'); // Query all possible node states
-       nodes.forEach(nodeElement => {
-         if (nodeElement.classList.contains('start') || nodeElement.classList.contains('end')) {
-            nodeElement.className = 'box';
-         }
-       });
-     });
+    const existingCols = graphActionRef.value.querySelectorAll(".col");
+    existingCols.forEach((colElement) => {
+      const nodes = colElement.querySelectorAll(
+        ".box, .start, .end, .wall, .visited, .path, .fringe"
+      ); // Query all possible node states
+      nodes.forEach((nodeElement) => {
+        if (
+          nodeElement.classList.contains("start") ||
+          nodeElement.classList.contains("end")
+        ) {
+          nodeElement.className = "box";
+        }
+      });
+    });
   }
 
   if (!props.isMobile) {
@@ -167,23 +180,36 @@ const updateGridDimensionsAndInitialize = async () => {
       rowNum.value = newRowNum;
       colNum.value = newColNum;
 
-      startX.value = Math.max(0, Math.min(Math.floor(newColNum / 4), newColNum - 1));
-      startY.value = Math.max(0, Math.min(Math.floor(newRowNum / 2), newRowNum - 1));
-      endX.value = Math.max(0, Math.min(Math.floor(newColNum * 3 / 4), newColNum - 1));
-      endY.value = Math.max(0, Math.min(Math.floor(newRowNum / 2), newRowNum - 1));
-      
-      if (newColNum <= 1 || newRowNum <= 1) { // Handle very small grids
-         startX.value = 0;
-         startY.value = 0;
-         endX.value = Math.max(0, newColNum -1);
-         endY.value = Math.max(0, newRowNum-1);
+      startX.value = Math.max(
+        0,
+        Math.min(Math.floor(newColNum / 4), newColNum - 1)
+      );
+      startY.value = Math.max(
+        0,
+        Math.min(Math.floor(newRowNum / 2), newRowNum - 1)
+      );
+      endX.value = Math.max(
+        0,
+        Math.min(Math.floor((newColNum * 3) / 4), newColNum - 1)
+      );
+      endY.value = Math.max(
+        0,
+        Math.min(Math.floor(newRowNum / 2), newRowNum - 1)
+      );
+
+      if (newColNum <= 1 || newRowNum <= 1) {
+        // Handle very small grids
+        startX.value = 0;
+        startY.value = 0;
+        endX.value = Math.max(0, newColNum - 1);
+        endY.value = Math.max(0, newRowNum - 1);
       }
 
       if (startX.value === endX.value && startY.value === endY.value) {
         if (newColNum > 1) {
           endX.value = Math.min(startX.value + 1, newColNum - 1);
         } else if (newRowNum > 1) {
-           endY.value = Math.min(startY.value + 1, newRowNum - 1);
+          endY.value = Math.min(startY.value + 1, newRowNum - 1);
         }
       }
     } else {
@@ -225,48 +251,66 @@ const initGrid = () => {
   grid.value = newGrid;
 };
 
-const disableButtons = () => { buttonDisable.value = true; };
-const enableButtons = () => { buttonDisable.value = false; };
+const disableButtons = () => {
+  buttonDisable.value = true;
+};
+const enableButtons = () => {
+  buttonDisable.value = false;
+};
 
 const clearSelectedForMoveMobile = () => {
-    const oldStartNodeEl = document.getElementById(`Node-${startX.value}-${startY.value}`);
-    if (oldStartNodeEl) oldStartNodeEl.classList.remove('selected-for-move');
-    const oldEndNodeEl = document.getElementById(`Node-${endX.value}-${endY.value}`);
-    if (oldEndNodeEl) oldEndNodeEl.classList.remove('selected-for-move');
-    isMovingStartMobile.value = false;
-    isMovingEndMobile.value = false;
+  const oldStartNodeEl = document.getElementById(
+    `Node-${startX.value}-${startY.value}`
+  );
+  if (oldStartNodeEl) oldStartNodeEl.classList.remove("selected-for-move");
+  const oldEndNodeEl = document.getElementById(
+    `Node-${endX.value}-${endY.value}`
+  );
+  if (oldEndNodeEl) oldEndNodeEl.classList.remove("selected-for-move");
+  isMovingStartMobile.value = false;
+  isMovingEndMobile.value = false;
 };
 
 const mouseEnter = (node) => {
-  if (props.isMobile || viz.value) return; 
+  if (props.isMobile || viz.value) return;
 
-  prevNodeClass.value = document.getElementById(node.id)?.className || 'box';
-  if (moveStart.value && grid.value[node.col] && grid.value[node.col][node.row]) {
+  prevNodeClass.value = document.getElementById(node.id)?.className || "box";
+  if (
+    moveStart.value &&
+    grid.value[node.col] &&
+    grid.value[node.col][node.row]
+  ) {
     document.getElementById(node.id).className = "start";
-  } else if (moveEnd.value && grid.value[node.col] && grid.value[node.col][node.row]) {
+  } else if (
+    moveEnd.value &&
+    grid.value[node.col] &&
+    grid.value[node.col][node.row]
+  ) {
     document.getElementById(node.id).className = "end";
-  } else if (mousePressed.value) { 
+  } else if (mousePressed.value) {
     makeWall(node);
   }
 };
 
 const mouseOut = (node) => {
-  if (props.isMobile || viz.value) return; 
+  if (props.isMobile || viz.value) return;
 
   const element = document.getElementById(node.id);
   if (!element) return;
 
   if (moveStart.value) {
     if (node.col === startX.value && node.row === startY.value) {
-      element.className = "start"; 
+      element.className = "start";
     } else {
-      element.className = prevNodeClass.value === "start" ? "box" : prevNodeClass.value;
+      element.className =
+        prevNodeClass.value === "start" ? "box" : prevNodeClass.value;
     }
   } else if (moveEnd.value) {
-     if (node.col === endX.value && node.row === endY.value) {
-      element.className = "end"; 
+    if (node.col === endX.value && node.row === endY.value) {
+      element.className = "end";
     } else {
-      element.className = prevNodeClass.value === "end" ? "box" : prevNodeClass.value;
+      element.className =
+        prevNodeClass.value === "end" ? "box" : prevNodeClass.value;
     }
   }
 };
@@ -279,45 +323,50 @@ const mouseDown = (node) => {
     if (!currentElement) return;
 
     if (isMovingStartMobile.value) {
-      if (node.isEnd || node.isWall) return; 
-      
+      if (node.isEnd || node.isWall) return;
+
       grid.value[startX.value][startY.value].isStart = false;
-      const oldStartEl = document.getElementById(`Node-${startX.value}-${startY.value}`);
-      if(oldStartEl) oldStartEl.className = "box";
-      
+      const oldStartEl = document.getElementById(
+        `Node-${startX.value}-${startY.value}`
+      );
+      if (oldStartEl) oldStartEl.className = "box";
+
       startX.value = node.col;
       startY.value = node.row;
       grid.value[startX.value][startY.value].isStart = true;
-      grid.value[startX.value][startY.value].ddist = 0; 
+      grid.value[startX.value][startY.value].ddist = 0;
       currentElement.className = "start";
       clearSelectedForMoveMobile();
     } else if (isMovingEndMobile.value) {
-      if (node.isStart || node.isWall) return; 
-      
+      if (node.isStart || node.isWall) return;
+
       grid.value[endX.value][endY.value].isEnd = false;
-      const oldEndEl = document.getElementById(`Node-${endX.value}-${endY.value}`);
-      if(oldEndEl) oldEndEl.className = "box";
-      
+      const oldEndEl = document.getElementById(
+        `Node-${endX.value}-${endY.value}`
+      );
+      if (oldEndEl) oldEndEl.className = "box";
+
       endX.value = node.col;
       endY.value = node.row;
       grid.value[endX.value][endY.value].isEnd = true;
       currentElement.className = "end";
       clearSelectedForMoveMobile();
-    } else { 
+    } else {
       if (node.isStart) {
         isMovingStartMobile.value = true;
-        isMovingEndMobile.value = false; 
-        currentElement.classList.add('selected-for-move');
+        isMovingEndMobile.value = false;
+        currentElement.classList.add("selected-for-move");
       } else if (node.isEnd) {
         isMovingEndMobile.value = true;
-        isMovingStartMobile.value = false; 
-        currentElement.classList.add('selected-for-move');
-      } else { 
+        isMovingStartMobile.value = false;
+        currentElement.classList.add("selected-for-move");
+      } else {
         mousePressed.value = true;
         makeWall(node);
       }
     }
-  } else { // Desktop drag logic
+  } else {
+    // Desktop drag logic
     let element = document.getElementById(node.id);
     if (!element) return;
     if (element.className === "start") {
@@ -331,23 +380,25 @@ const mouseDown = (node) => {
   }
 };
 
-const mouseUp = (node) => { 
+const mouseUp = (node) => {
   if (props.isMobile) {
-    mousePressed.value = false; 
-  } else { 
+    mousePressed.value = false;
+  } else {
     if (moveStart.value) {
-      if(grid.value[startX.value] && grid.value[startX.value][startY.value]) { // Check if old start exists
+      if (grid.value[startX.value] && grid.value[startX.value][startY.value]) {
+        // Check if old start exists
         grid.value[startX.value][startY.value].isStart = false;
       }
       startX.value = node.col;
       startY.value = node.row;
       grid.value[startX.value][startY.value].isStart = true;
-      grid.value[startX.value][startY.value].ddist = 0; 
+      grid.value[startX.value][startY.value].ddist = 0;
       document.getElementById(node.id).className = "start";
       moveStart.value = false;
     } else if (moveEnd.value) {
-      if(grid.value[endX.value] && grid.value[endX.value][endY.value]) { // Check if old end exists
-         grid.value[endX.value][endY.value].isEnd = false;
+      if (grid.value[endX.value] && grid.value[endX.value][endY.value]) {
+        // Check if old end exists
+        grid.value[endX.value][endY.value].isEnd = false;
       }
       endX.value = node.col;
       endY.value = node.row;
@@ -355,7 +406,7 @@ const mouseUp = (node) => {
       document.getElementById(node.id).className = "end";
       moveEnd.value = false;
     }
-    mousePressed.value = false; 
+    mousePressed.value = false;
   }
 };
 
@@ -383,24 +434,36 @@ const setStart = () => {
     if (element) element.className = "start";
     else console.error(`Element with ID ${node.id} not found for setStart`);
   } else {
-    console.error("Start node position out of bounds:", startX.value, startY.value, colNum.value, rowNum.value);
+    console.error(
+      "Start node position out of bounds:",
+      startX.value,
+      startY.value,
+      colNum.value,
+      rowNum.value
+    );
   }
 };
 
 const setEnd = () => {
- if (grid.value[endX.value] && grid.value[endX.value][endY.value]) {
+  if (grid.value[endX.value] && grid.value[endX.value][endY.value]) {
     let node = grid.value[endX.value][endY.value];
     node.isEnd = true;
     const element = document.getElementById(node.id);
     if (element) element.className = "end";
     else console.error(`Element with ID ${node.id} not found for setEnd`);
   } else {
-    console.error("End node position out of bounds:", endX.value, endY.value, colNum.value, rowNum.value);
+    console.error(
+      "End node position out of bounds:",
+      endX.value,
+      endY.value,
+      colNum.value,
+      rowNum.value
+    );
   }
 };
 
 const createNode = (row, col) => {
-  // Always create a generic node. 
+  // Always create a generic node.
   // isStart, isEnd, and ddist for start node are handled by setStart()/setEnd()
   return {
     col,
@@ -412,7 +475,7 @@ const createNode = (row, col) => {
     ref: `Node-${col}-${row}`,
     id: `Node-${col}-${row}`,
     parent: null,
-    ddist: Number.POSITIVE_INFINITY, 
+    ddist: Number.POSITIVE_INFINITY,
     g: Number.POSITIVE_INFINITY,
     h: Number.POSITIVE_INFINITY,
     f: Number.POSITIVE_INFINITY,
@@ -423,9 +486,9 @@ const createNode = (row, col) => {
 const resetGrid = async () => {
   viz.value = false;
   buttonDisable.value = true; // Disable buttons during reset
-  clearSelectedForMoveMobile(); 
+  clearSelectedForMoveMobile();
   await updateGridDimensionsAndInitialize(); // This recalculates dimensions, calls initGrid, setStart, setEnd
-  
+
   // After updateGridDimensionsAndInitialize, the grid data (isWall, etc.) is fresh
   // but we need to ensure all visual styles reflect this, beyond just start/end.
   for (let c = 0; c < colNum.value; c++) {
@@ -435,25 +498,25 @@ const resetGrid = async () => {
         const element = document.getElementById(node.id);
         if (element) {
           if (node.isStart) {
-            element.className = 'start';
+            element.className = "start";
           } else if (node.isEnd) {
-            element.className = 'end';
-          } else if (node.isWall) { // Should be false after initGrid called by update...
-             element.className = 'wall'; // This case should ideally not happen if initGrid is correct
+            element.className = "end";
+          } else if (node.isWall) {
+            // Should be false after initGrid called by update...
+            element.className = "wall"; // This case should ideally not happen if initGrid is correct
           } else {
-            element.className = 'box';
+            element.className = "box";
           }
         }
       }
     }
   }
-  enableButtons(); 
+  enableButtons();
 };
-
 
 const resetVis = () => {
   viz.value = false;
-  clearSelectedForMoveMobile(); 
+  clearSelectedForMoveMobile();
   for (let c = 0; c < colNum.value; c++) {
     for (let r = 0; r < rowNum.value; r++) {
       if (grid.value[c] && grid.value[c][r]) {
@@ -465,7 +528,8 @@ const resetVis = () => {
         node.closed = false;
         node.parent = null; // Important for re-running algos
         // ddist, f, g, h are reset here for non-start/end nodes
-        if (!node.isStart) node.ddist = Number.POSITIVE_INFINITY; else node.ddist = 0;
+        if (!node.isStart) node.ddist = Number.POSITIVE_INFINITY;
+        else node.ddist = 0;
         node.f = Number.POSITIVE_INFINITY;
         node.g = Number.POSITIVE_INFINITY;
         node.h = Number.POSITIVE_INFINITY;
@@ -474,14 +538,14 @@ const resetVis = () => {
           element.className = "start";
         } else if (node.isEnd) {
           element.className = "end";
-        } else if (!node.isWall) { 
+        } else if (!node.isWall) {
           element.className = "box";
         }
         // Walls remain walls visually and in data
       }
     }
   }
-  enableButtons(); 
+  enableButtons();
 };
 
 const runAlgorithm = (algoFunction, ...args) => {
@@ -490,10 +554,20 @@ const runAlgorithm = (algoFunction, ...args) => {
   resetVis(); // Clear previous visualization before starting a new one
   disableButtons();
   viz.value = true;
-  
-  const pathAnimations = []; 
+
+  const pathAnimations = [];
   try {
-    algoFunction(grid.value, startX.value, startY.value, endX.value, endY.value, pathAnimations, rowNum.value, colNum.value, ...args);
+    algoFunction(
+      grid.value,
+      startX.value,
+      startY.value,
+      endX.value,
+      endY.value,
+      pathAnimations,
+      rowNum.value,
+      colNum.value,
+      ...args
+    );
   } catch (err) {
     console.error(`Error in ${algoFunction.name}:`, err);
     enableButtons();
@@ -506,20 +580,22 @@ const runAlgorithm = (algoFunction, ...args) => {
     animationTimeout = (i + 1) * animSpeed.value;
     const animationStep = pathAnimations[i];
     if (!animationStep) continue;
-    
+
     const command = animationStep[0];
     const x = animationStep[1];
     const y = animationStep[2];
     let current;
     try {
       current = grid.value[x][y];
-    } catch (err) { continue; }
+    } catch (err) {
+      continue;
+    }
 
     if (current.isStart || current.isEnd) continue; // Don't animate start/end nodes themselves
 
     setTimeout(() => {
       const el = document.getElementById(current.id);
-      if(el) {
+      if (el) {
         if (command === "curr" || command === "visit") {
           el.className = "visited";
         } else if (command === "path") {
@@ -530,32 +606,36 @@ const runAlgorithm = (algoFunction, ...args) => {
       }
     }, i * animSpeed.value);
   }
-  
-  setTimeout(() => {
-      enableButtons();
-      viz.value = false; 
-      // Optionally check if path was found (e.g., grid.value[endX.value][endY.value].parent)
-  }, animationTimeout + animSpeed.value); 
-};
 
+  setTimeout(() => {
+    enableButtons();
+    viz.value = false;
+    // Optionally check if path was found (e.g., grid.value[endX.value][endY.value].parent)
+  }, animationTimeout + animSpeed.value);
+};
 
 const depthFirstButton = () => {
   // DFS might not use endX, endY but pass them for consistency if runAlgorithm expects them
-  runAlgorithm((grid, sX, sY, _eX, _eY, anims, rN, cN) => dfs(sX, sY, grid, anims, rN, cN));
+  runAlgorithm((grid, sX, sY, _eX, _eY, anims, rN, cN) =>
+    dfs(sX, sY, grid, anims, rN, cN)
+  );
 };
 
 const breadthFirstButton = () => {
-  runAlgorithm((grid, sX, sY, _eX, _eY, anims, rN, cN) => bfs(sX, sY, grid, anims, rN, cN));
+  runAlgorithm((grid, sX, sY, _eX, _eY, anims, rN, cN) =>
+    bfs(sX, sY, grid, anims, rN, cN)
+  );
 };
 
 const dijkstraButton = () => {
-  runAlgorithm((grid, sX, sY, _eX, _eY, anims, rN, cN) => dijkstra(grid, sX, sY, anims, rN, cN));
+  runAlgorithm((grid, sX, sY, _eX, _eY, anims, rN, cN) =>
+    dijkstra(grid, sX, sY, anims, rN, cN)
+  );
 };
 
 const aStarButton = () => {
   runAlgorithm(aStar); // aStar uses all standard parameters
 };
-
 
 // Make sure your imported algorithm functions (dfs, bfs, dijkstra, aStar)
 // are adapted to:
@@ -566,7 +646,6 @@ const aStarButton = () => {
 //    - e.g., animationsArray.push(["path", pathNodeX, pathNodeY]);
 // 3. NOT try to directly manipulate DOM or use global/component animation arrays.
 // 4. Correctly update node properties like .parent, .ddist, .g, .h, .f, .closed as needed for their logic.
-
 </script>
 <style lang="scss" scoped>
 @use "sass:color";
@@ -575,44 +654,43 @@ const aStarButton = () => {
 .path-container {
   display: flex;
   flex-direction: column;
-  align-items: center; 
+  align-items: center;
   flex: 1;
-  min-height: 0; 
-  overflow-y: hidden; 
+  min-height: 0;
+  overflow-y: hidden;
   box-sizing: border-box;
 
   .function-buttons {
-    padding-bottom: 1rem; 
+    padding-bottom: 1rem;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    flex-shrink: 0; 
+    flex-shrink: 0;
   }
 
   .graph-action {
     border: 1px solid $gunmetal;
-    width: fit-content; 
-    display: flex; 
-    transform: rotateX(180deg); 
+    width: fit-content;
+    display: flex;
+    transform: rotateX(180deg);
     box-sizing: border-box;
   }
 }
 
-.col { 
+.col {
   display: flex;
   flex-direction: column;
 }
 
-
 .toolbar-button {
-  margin: 10px; 
+  margin: 10px;
   background-color: $gunmetal;
   border: none;
   color: $white-smoke;
-  padding: 8px 14px; 
+  padding: 8px 14px;
   text-align: center;
   display: inline-block;
-  font-size: 15px; 
+  font-size: 15px;
   cursor: pointer;
   border-radius: 5px;
   transition: background-color 0.2s ease;
@@ -629,7 +707,7 @@ const aStarButton = () => {
 
 .reset-grid-button,
 .reset-vis-button {
-  background-color: $chestnut !important; 
+  background-color: $chestnut !important;
 }
 
 .reset-grid-button:hover:not(:disabled),
@@ -639,32 +717,31 @@ const aStarButton = () => {
 
 @media screen and (max-width: 768px) {
   .path-container {
-    justify-content: flex-start; 
-    align-items: stretch; 
+    justify-content: flex-start;
+    align-items: stretch;
 
     .function-buttons {
-      padding-bottom: 0.5rem; 
+      padding-bottom: 0.5rem;
       .toolbar-button {
         margin: 5px;
         padding: 6px 10px;
-        font-size: 12px; 
+        font-size: 12px;
       }
     }
 
     .graph-action {
-      flex: 1; 
-      min-height: 0; 
-      margin: 10px; 
-      overflow: hidden; 
-      width: auto; 
+      flex: 1;
+      min-height: 0;
+      margin: 10px;
+      overflow: hidden;
+      width: auto;
       border: 0px;
     }
   }
 }
 
-:deep(.selected-for-move) { 
-  outline: 2px solid $mantis !important; 
-  outline-offset: -2px; 
+:deep(.selected-for-move) {
+  outline: 2px solid $mantis !important;
+  outline-offset: -2px;
 }
-
 </style>

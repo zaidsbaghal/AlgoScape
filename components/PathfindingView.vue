@@ -358,14 +358,14 @@ const mouseOut = (node) => {
 
   if (moveStart.value) {
     if (node.col === startX.value && node.row === startY.value) {
-      element.className = "start";
+      element.className = "start dragging-origin";
     } else {
       element.className =
         prevNodeClass.value === "start" ? "box" : prevNodeClass.value;
     }
   } else if (moveEnd.value) {
     if (node.col === endX.value && node.row === endY.value) {
-      element.className = "end";
+      element.className = "end dragging-origin";
     } else {
       element.className =
         prevNodeClass.value === "end" ? "box" : prevNodeClass.value;
@@ -381,35 +381,44 @@ const mouseDown = (node) => {
     if (!currentElement) return;
 
     if (isMovingStartMobile.value) {
-      if (node.isEnd || node.isWall) return;
+      // Allow placing on walls, but not on the end node.
+      if (node.isEnd) return;
 
+      // Clear old start
       grid.value[startX.value][startY.value].isStart = false;
       const oldStartEl = document.getElementById(
         `Node-${startX.value}-${startY.value}`
       );
       if (oldStartEl) oldStartEl.className = "box";
 
+      // Set new start
       startX.value = node.col;
       startY.value = node.row;
       grid.value[startX.value][startY.value].isStart = true;
+      grid.value[startX.value][startY.value].isWall = false; // Ensure it's not a wall
       grid.value[startX.value][startY.value].ddist = 0;
       currentElement.className = "start";
       clearSelectedForMoveMobile();
     } else if (isMovingEndMobile.value) {
-      if (node.isStart || node.isWall) return;
+      // Allow placing on walls, but not on the start node.
+      if (node.isStart) return;
 
+      // Clear old end
       grid.value[endX.value][endY.value].isEnd = false;
       const oldEndEl = document.getElementById(
         `Node-${endX.value}-${endY.value}`
       );
       if (oldEndEl) oldEndEl.className = "box";
 
+      // Set new end
       endX.value = node.col;
       endY.value = node.row;
       grid.value[endX.value][endY.value].isEnd = true;
+      grid.value[endX.value][endY.value].isWall = false; // Ensure it's not a wall
       currentElement.className = "end";
       clearSelectedForMoveMobile();
     } else {
+      // Not moving a node, select or draw wall
       if (node.isStart) {
         isMovingStartMobile.value = true;
         isMovingEndMobile.value = false;
@@ -429,8 +438,10 @@ const mouseDown = (node) => {
     if (!element) return;
     if (element.className === "start") {
       moveStart.value = true;
+      element.classList.add("dragging-origin"); // Add opacity class
     } else if (element.className === "end") {
       moveEnd.value = true;
+      element.classList.add("dragging-origin"); // Add opacity class
     } else {
       mousePressed.value = true;
       makeWall(node);
@@ -451,7 +462,10 @@ const mouseUp = (node) => {
         const oldStartElement = document.getElementById(
           `Node-${oldStartX}-${oldStartY}`
         );
-        if (oldStartElement) oldStartElement.className = "box"; // Reset visual class
+        if (oldStartElement) {
+          oldStartElement.className = "box"; // Reset visual class
+          oldStartElement.classList.remove("dragging-origin"); // Remove opacity class
+        }
       }
       // Update coordinates to new node
       startX.value = node.col;
@@ -470,7 +484,10 @@ const mouseUp = (node) => {
         const oldEndElement = document.getElementById(
           `Node-${oldEndX}-${oldEndY}`
         );
-        if (oldEndElement) oldEndElement.className = "box"; // Reset visual class
+        if (oldEndElement) {
+          oldEndElement.className = "box"; // Reset visual class
+          oldEndElement.classList.remove("dragging-origin"); // Remove opacity class
+        }
       }
       // Update coordinates to new node
       endX.value = node.col;
@@ -854,5 +871,10 @@ const generateRandomMaze = async () => {
 :deep(.selected-for-move) {
   outline: 2px solid $mantis !important;
   outline-offset: -2px;
+}
+
+.dragging-origin {
+  opacity: 0.5;
+  transition: opacity 0.2s ease; /* Optional: smooth transition */
 }
 </style>

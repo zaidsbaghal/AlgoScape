@@ -628,9 +628,10 @@ const breadthFirstButton = () => {
 };
 
 const dijkstraButton = () => {
-  runAlgorithm((grid, sX, sY, _eX, _eY, anims, rN, cN) =>
-    dijkstra(grid, sX, sY, anims, rN, cN)
-  );
+  runAlgorithm((grid, sX, sY, _eX, _eY, anims, rN, cN) => {
+    const pq = []; // Create the priority queue instance/array here
+    dijkstra(grid, sX, sY, anims, pq, rN, cN);
+  });
 };
 
 const aStarButton = () => {

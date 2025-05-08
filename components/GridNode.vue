@@ -1,5 +1,5 @@
 <template>
-  <div class="box" :id="id" :ref="ref"></div>
+  <div class="box" :id="id" :ref="nodeIdentifier"></div>
 </template>
 <script setup>
 const props = defineProps({
@@ -31,17 +31,17 @@ const props = defineProps({
     type: String,
     default: "",
   },
-  ref: {
+  nodeIdentifier: {
     type: String,
     default: "",
   },
   parent: {
     type: Object,
-    default: null, 
+    default: null,
   },
   ddist: {
     type: Number,
-    default: 0, 
+    default: 0,
   },
   g: {
     type: Number,

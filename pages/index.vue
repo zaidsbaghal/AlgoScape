@@ -6,16 +6,24 @@
           <Logo />
         </div>
         <div class="algorithm-container">
-          <div class="select-container">
-            <select
-              v-model="AlgoCategory"
-              class="algo-select"
-              name="algorithms"
-              id="algorithms"
+          <div class="view-switcher">
+            <button
+              @click="setAlgoCategory('sorting')"
+              :class="{ active: AlgoCategory.value === 'sorting' }"
+              aria-label="Switch to Sorting View"
             >
-              <option value="sorting" selected>Sort</option>
-              <option value="pathfinding">Pathfind</option>
-            </select>
+              <Icon name="ion:swap-vertical-outline" size="40" />
+            </button>
+            <button
+              @click="setAlgoCategory('pathfinding')"
+              :class="{ active: AlgoCategory.value === 'pathfinding' }"
+              aria-label="Switch to Pathfinding View"
+            >
+              <Icon name="ion:footsteps-outline" size="40" />
+            </button>
+            <button @click="navigateToAbout" aria-label="Go to About Page">
+              <Icon name="ion:information-circle-outline" size="40" />
+            </button>
           </div>
         </div>
         <div v-show="AlgoCategory === 'sorting'">
@@ -62,6 +70,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
+import { useRouter } from "vue-router";
 import Logo from "~/components/Logo.vue";
 
 // Computed property
@@ -74,6 +83,9 @@ const isMobile = computed(() => {
   return false;
 });
 
+// Router instance
+const router = useRouter();
+
 // Data properties
 const AlgoCategory = ref("sorting");
 const loaderLoading = ref(true);
@@ -83,14 +95,55 @@ const loaderSize = ref("300");
 // Persist AlgoCategory to localStorage
 onMounted(() => {
   const savedCategory = localStorage.getItem("selectedAlgoCategory");
+  console.log("[DEBUG] Retrieved from localStorage:", savedCategory);
   if (savedCategory) {
     AlgoCategory.value = savedCategory;
   }
+  console.log(
+    "[DEBUG] AlgoCategory.value after onMounted:",
+    AlgoCategory.value
+  );
+  console.log("[DEBUG] AlgoCategory ref object after onMounted:", AlgoCategory);
 });
 
 watch(AlgoCategory, (newCategory) => {
   localStorage.setItem("selectedAlgoCategory", newCategory);
 });
+
+// Navigation function
+const navigateToAbout = () => {
+  router.push("/about");
+};
+
+const setAlgoCategory = (category) => {
+  console.log("[DEBUG] Attempting to set AlgoCategory to:", category);
+  console.log(
+    "[DEBUG] Current AlgoCategory.value before set:",
+    AlgoCategory.value
+  );
+  // console.log("[DEBUG] AlgoCategory ref object before set:", AlgoCategory); // Keep this commented for now
+  if (AlgoCategory && typeof AlgoCategory.value !== "undefined") {
+    AlgoCategory.value = category;
+    console.log(
+      "[DEBUG] Successfully set AlgoCategory.value to:",
+      AlgoCategory.value
+    );
+    console.log("[DEBUG] Type of AlgoCategory after set:", typeof AlgoCategory);
+    console.log(
+      "[DEBUG] Is AlgoCategory a ref after set (AlgoCategory.__v_isRef)?:",
+      AlgoCategory && AlgoCategory.__v_isRef
+    );
+    console.log(
+      "[DEBUG] AlgoCategory object after set (full inspect):",
+      AlgoCategory
+    );
+  } else {
+    console.error(
+      "[DEBUG] AlgoCategory is not a valid ref or has no .value property. Current state:",
+      AlgoCategory
+    );
+  }
+};
 </script>
 
 <style lang="scss">
@@ -125,26 +178,33 @@ select {
   .algorithm-container {
     margin-top: 1rem;
     margin-bottom: 1rem;
-    height: 5.5rem;
     display: flex;
     justify-content: center;
+    align-items: center;
 
-    .algo-select {
+    .view-switcher {
       display: flex;
-      justify-content: center;
-      align-items: center;
-      margin: 0 auto;
-      text-align: center;
-      width: 350px;
-      padding-left: 20px;
-      padding-right: 20px;
-      height: 100px;
-      font-size: 45px;
-      font-weight: bold;
-      cursor: pointer;
-      background-color: $white-smoke;
-      border: none;
-      color: $gunmetal;
+      gap: 30px;
+
+      button {
+        background: none;
+        border: none;
+        padding: 5px;
+        cursor: pointer;
+        color: $gunmetal;
+        opacity: 0.6;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+
+        &:hover {
+          opacity: 1;
+        }
+
+        &.active {
+          opacity: 1;
+          transform: scale(1.1);
+          color: $chestnut;
+        }
+      }
     }
   }
 }
@@ -187,10 +247,14 @@ select {
       height: auto;
       margin-top: 0.5rem;
       margin-bottom: 0.5rem;
-      .algo-select {
-        height: auto;
-        padding: 18px 25px;
-        font-size: 34px;
+      .view-switcher {
+        gap: 20px;
+        button {
+          padding: 3px;
+          .icon {
+            font-size: 35px !important;
+          }
+        }
       }
     }
 
@@ -210,8 +274,8 @@ select {
       }
     }
 
-    div[v-show="AlgoCategory === 'sorting'"],
-    div[v-show="AlgoCategory === 'pathfinding'"] {
+    div[v-show="AlgoCategory.value === 'sorting'"],
+    div[v-show="AlgoCategory.value === 'pathfinding'"] {
       flex: 1;
       display: flex;
       flex-direction: column;
@@ -224,7 +288,7 @@ select {
 @media screen and (min-device-width: 1200px) and (max-device-width: 1600px) and (-webkit-min-device-pixel-ratio: 1) {
   .main {
     .algorithm-container {
-      .algo-select {
+      .view-switcher {
       }
       .down-arrow {
       }

@@ -70,7 +70,7 @@
             v-for="node in col"
             :key="node.id"
             :id="node.id"
-            :ref="node.ref"
+            :nodeIdentifier="node.ref"
             :row="node.row"
             :col="node.col"
             :isWall="node.isWall"

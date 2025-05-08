@@ -6,8 +6,9 @@
         v-on:click="genArray"
         :disabled="buttonDisable"
       >
-        <span style="display: flex; align-items: center; gap: 5px">
-          <Icon name="ion:stats-chart-sharp" /> Generate
+        <span class="button-content-wrapper">
+          <Icon name="ion:stats-chart-sharp" style="vertical-align: middle" />
+          Generate
         </span>
       </button>
       <button
@@ -15,8 +16,9 @@
         v-on:click="resetArray"
         :disabled="buttonDisable"
       >
-        <span style="display: flex; align-items: center; gap: 5px">
-          <Icon name="ion:refresh-outline" /> Reset
+        <span class="button-content-wrapper">
+          <Icon name="ion:refresh-outline" style="vertical-align: middle" />
+          Reset
         </span>
       </button>
       <button
@@ -690,5 +692,12 @@ const insertionSortButton = () => {
     width: 8px;
     margin: 0 1px;
   }
+}
+
+.button-content-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center; // Also center horizontally within the span
+  gap: 5px;
 }
 </style>

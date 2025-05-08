@@ -7,8 +7,9 @@
           :disabled="buttonDisable"
           v-on:click="resetGrid"
         >
-          <span style="display: flex; align-items: center; gap: 5px">
-            <Icon name="ion:grid-outline" /> Reset Grid
+          <span class="button-content-wrapper">
+            <Icon name="ion:grid-outline" style="vertical-align: middle" />
+            Reset Grid
           </span>
         </button>
         <button
@@ -16,8 +17,22 @@
           :disabled="buttonDisable"
           v-on:click="resetVis"
         >
-          <span style="display: flex; align-items: center; gap: 5px">
-            <Icon name="ion:refresh-outline" /> Reset Visualization
+          <span class="button-content-wrapper">
+            <Icon name="ion:refresh-outline" style="vertical-align: middle" />
+            Reset Visualization
+          </span>
+        </button>
+        <button
+          class="toolbar-button generate-maze-button reset-vis-button"
+          :disabled="buttonDisable"
+          v-on:click="generateRandomMaze"
+        >
+          <span class="button-content-wrapper">
+            <Icon
+              name="ion:extension-puzzle-outline"
+              style="vertical-align: middle"
+            />
+            Generate Maze
           </span>
         </button>
         <button
@@ -131,6 +146,49 @@ const isMovingEndMobile = ref(false);
 
 const prevNodeClass = ref(null); // Stores class of node before mouseEnter (for desktop dragging)
 const viz = ref(false);
+
+const clearWallsAndVisualization = () => {
+  viz.value = false;
+  clearSelectedForMoveMobile(); // Reset mobile move states
+  for (let c = 0; c < colNum.value; c++) {
+    for (let r = 0; r < rowNum.value; r++) {
+      if (grid.value[c] && grid.value[c][r]) {
+        let node = grid.value[c][r];
+        let element = document.getElementById(node.id);
+        if (!element) continue;
+
+        // Reset non-essential data
+        node.visited = false;
+        node.closed = false;
+        node.parent = null;
+        node.f = Number.POSITIVE_INFINITY;
+        node.g = Number.POSITIVE_INFINITY;
+        node.h = Number.POSITIVE_INFINITY;
+
+        // Reset wall state
+        node.isWall = false;
+
+        // Reset visual class and ddist based on current start/end positions
+        if (node.col === startX.value && node.row === startY.value) {
+          node.isStart = true; // Ensure it's marked as start
+          node.ddist = 0;
+          element.className = "start";
+        } else if (node.col === endX.value && node.row === endY.value) {
+          node.isEnd = true; // Ensure it's marked as end
+          node.ddist = Number.POSITIVE_INFINITY;
+          element.className = "end";
+        } else {
+          // Ensure it's not marked as start/end if coords don't match
+          node.isStart = false;
+          node.isEnd = false;
+          node.ddist = Number.POSITIVE_INFINITY;
+          element.className = "box"; // Reset to box if not start/end
+        }
+      }
+    }
+  }
+  enableButtons(); // Ensure buttons are enabled after clearing
+};
 
 const updateGridDimensionsAndInitialize = async () => {
   // Visual cleanup of any lingering start/end classes from a previous render cycle
@@ -654,6 +712,36 @@ const aStarButton = () => {
   runAlgorithm(aStar); // aStar uses all standard parameters
 };
 
+const generateRandomMaze = async () => {
+  if (viz.value || buttonDisable.value) return; // Prevent generation during visualization or if disabled
+
+  disableButtons(); // Disable buttons during generation
+  clearWallsAndVisualization(); // Clear walls/viz but keep start/end positions
+  await nextTick(); // Allow DOM to update after clearing
+
+  // Now, randomly add walls
+  const wallProbability = 0.3; // Adjust probability as needed
+  for (let c = 0; c < colNum.value; c++) {
+    for (let r = 0; r < rowNum.value; r++) {
+      if (grid.value[c] && grid.value[c][r]) {
+        let node = grid.value[c][r];
+        // Only add walls if it's not the *current* start or end node
+        if (
+          !(node.col === startX.value && node.row === startY.value) &&
+          !(node.col === endX.value && node.row === endY.value)
+        ) {
+          if (Math.random() < wallProbability) {
+            node.isWall = true;
+            const element = document.getElementById(node.id);
+            if (element) element.className = "wall";
+          }
+        }
+      }
+    }
+  }
+  enableButtons(); // Re-enable buttons after maze generation
+};
+
 // Make sure your imported algorithm functions (dfs, bfs, dijkstra, aStar)
 // are adapted to:
 // 1. Accept parameters like: (grid, startX, startY, endX, endY, animationsArray, numRows, numCols, ...anyOtherSpecificParams)
@@ -667,6 +755,13 @@ const aStarButton = () => {
 <style lang="scss" scoped>
 @use "sass:color";
 @use "~/assets/main.scss" as *; // Ensure this path is correct
+
+.button-content-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center; // Also center horizontally within the span
+  gap: 5px;
+}
 
 .path-container {
   display: flex;
@@ -707,7 +802,7 @@ const aStarButton = () => {
   padding: 8px 14px;
   text-align: center;
   display: inline-block;
-  font-size: 15px;
+  font-size: 16px;
   cursor: pointer;
   border-radius: 5px;
   transition: background-color 0.2s ease;
@@ -742,7 +837,6 @@ const aStarButton = () => {
       .toolbar-button {
         margin: 5px;
         padding: 6px 10px;
-        font-size: 12px;
       }
     }
 

@@ -6,49 +6,53 @@
         v-on:click="genArray"
         :disabled="buttonDisable"
       >
-        Generate New
+        <span style="display: flex; align-items: center; gap: 5px">
+          <Icon name="ion:stats-chart-sharp" /> Generate
+        </span>
       </button>
       <button
         class="toolbar-button reset-button"
         v-on:click="resetArray"
         :disabled="buttonDisable"
       >
-        Reset Array
+        <span style="display: flex; align-items: center; gap: 5px">
+          <Icon name="ion:refresh-outline" /> Reset
+        </span>
       </button>
       <button
         class="toolbar-button"
         v-on:click="mergeSortButton"
         :disabled="buttonDisable"
       >
-        Merge Sort
+        Merge
       </button>
       <button
         class="toolbar-button"
         v-on:click="quickSortButton"
         :disabled="buttonDisable"
       >
-        Quick Sort
+        Quick
       </button>
       <button
         class="toolbar-button"
         v-on:click="bubbleSortButton"
         :disabled="buttonDisable"
       >
-        Bubble Sort
+        Bubble
       </button>
       <button
         class="toolbar-button"
         v-on:click="selectionSortButton"
         :disabled="buttonDisable"
       >
-        Selection Sort
+        Selection
       </button>
       <button
         class="toolbar-button"
         v-on:click="insertionSortButton"
         :disabled="buttonDisable"
       >
-        Insertion Sort
+        Insertion
       </button>
     </div>
     <div class="active-window">

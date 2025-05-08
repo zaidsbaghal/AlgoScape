@@ -13,8 +13,8 @@
               name="algorithms"
               id="algorithms"
             >
-              <option value="sorting" selected>Sorting</option>
-              <option value="pathfinding">Pathfinding</option>
+              <option value="sorting" selected>Sort</option>
+              <option value="pathfinding">Pathfind</option>
             </select>
           </div>
         </div>

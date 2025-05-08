@@ -27,10 +27,12 @@ html {
   box-sizing: border-box;
   background-color: $white-smoke;
   height: 100vh;
+  touch-action: manipulation;
 }
 
 body {
   margin: 0; // Reset default body margin
+  touch-action: manipulation;
 }
 
 @media screen and (max-width: 768px) {

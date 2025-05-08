@@ -657,7 +657,7 @@ const aStarButton = () => {
       margin: 10px; 
       overflow: hidden; 
       width: auto; 
-      border: 1px solid $gunmetal; 
+      border: 0px;
     }
   }
 }

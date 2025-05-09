@@ -552,11 +552,15 @@ const insertionSortButton = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: auto; // Keep latest desktop style
+  height: 100%; // Changed from auto to 100% to fill available space
+  overflow: hidden; // Prevent scrollbars at container level
+
   .function-buttons {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
+    padding: 1rem;
+    width: 100%;
   }
 
   @media screen and (min-width: 769px) {
@@ -604,8 +608,13 @@ const insertionSortButton = () => {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  height: 65vh; // Keep user's desktop height adjustment
+  flex: 1;
+  width: auto;
   padding: 2rem;
+  overflow: hidden; // Prevent scrollbars at window level
+  margin-left: 4rem;
+  margin-right: 4rem;
+  box-sizing: border-box; // Ensure padding is included in the width
 }
 
 .array-container {
@@ -613,9 +622,9 @@ const insertionSortButton = () => {
   flex-direction: row;
   width: 100%;
   justify-content: center;
-  left: 100px;
   height: 100%;
   transform: scaleY(-1);
+  overflow: visible; // Allow bars to render at full height
 }
 
 .array-bar {
@@ -644,7 +653,6 @@ const insertionSortButton = () => {
   }
 
   .active-window {
-    height: 65vh; // Keep user's desktop height adjustment
     padding: 1rem;
   }
 
@@ -653,7 +661,6 @@ const insertionSortButton = () => {
     flex-direction: row;
     width: 100%;
     justify-content: center;
-    left: 100px;
     height: 100%;
     transform: scaleY(-1);
   }
@@ -666,17 +673,31 @@ const insertionSortButton = () => {
   }
 }
 
+@media screen and (min-width: 769px) and (max-width: 1199px) {
+  .active-window {
+    margin-left: 2rem;
+    margin-right: 2rem;
+    width: auto;
+    padding: 1rem;
+  }
+
+  .array-bar {
+    width: 8px;
+    margin: 0 1px;
+  }
+}
+
 @media screen and (max-width: 768px) {
   .sort-container {
     justify-content: flex-start;
-    height: 65vh !important; // Keep user's mobile height adjustment
+    height: 100% !important; // Changed from 65vh to use full height
     -webkit-user-select: none; /* Safari */
     -ms-user-select: none; /* IE 10 and IE 11 */
     user-select: none; /* Standard syntax */
     -webkit-touch-callout: none; /* Prevent callout menu on long press */
     .function-buttons {
       flex-shrink: 0;
-      padding: 0.5rem; 
+      padding: 0.5rem;
       padding-top: 0.5rem;
       .toolbar-button {
         margin: 5px;
@@ -688,14 +709,16 @@ const insertionSortButton = () => {
   .active-window {
     padding: 1rem;
     flex: 1;
-    min-height: fit-content;
-    width: 100%;
+    min-height: 0; // Changed from fit-content to 0 to allow shrinking
+    width: 100%; /* Set to 100% for mobile, overriding default */
+    margin-left: 0; /* Reset margins for mobile */
+    margin-right: 0;
     box-sizing: border-box;
-    display: flex; // Keep display:flex for mobile .active-window
-    flex-direction: column; // Keep direction for mobile .active-window
+    display: flex;
+    flex-direction: column;
   }
   .array-container {
-    overflow-x: auto;
+    overflow: visible; // Changed from overflow-x:auto to prevent scrollbars
   }
   .array-bar {
     width: 8px;
@@ -706,7 +729,7 @@ const insertionSortButton = () => {
 .button-content-wrapper {
   display: flex;
   align-items: center;
-  justify-content: center; // Also center horizontally within the span
+  justify-content: center;
   gap: 5px;
 }
 </style>

@@ -31,15 +31,13 @@
           </div>
         </div>
         <div v-show="AlgoCategory === 'sorting'">
-          <grid-loader
-            :loading="loaderLoading"
-            :color="loaderColor"
-            :size="loaderSize"
-          ></grid-loader>
           <SortingView :is-mobile="isMobile"></SortingView>
         </div>
         <div v-show="AlgoCategory === 'pathfinding'">
-          <PathfindingView :is-mobile="isMobile"></PathfindingView>
+          <PathfindingView
+            :is-mobile="isMobile"
+            :is-active="AlgoCategory === 'pathfinding'"
+          ></PathfindingView>
         </div>
         <div v-show="AlgoCategory === 'about'">
           <AboutView />
@@ -77,15 +75,12 @@ const loaderSize = ref("300");
 // Persist AlgoCategory to localStorage
 onMounted(() => {
   const savedCategory = localStorage.getItem("selectedAlgoCategory");
-  console.log("[DEBUG] Retrieved from localStorage:", savedCategory);
+
   if (savedCategory) {
     AlgoCategory.value = savedCategory;
   }
-  console.log(
-    "[DEBUG] AlgoCategory.value after onMounted:",
-    AlgoCategory.value
-  );
-  console.log("[DEBUG] AlgoCategory ref object after onMounted:", AlgoCategory);
+
+  loaderLoading.value = false; // Hide loader after mount
 });
 
 watch(AlgoCategory, (newCategory) => {
@@ -184,27 +179,19 @@ select {
 }
 
 // Common styles for the view hosting divs
-// Moved to global scope for consistent layout
-div[v-show="AlgoCategory.value === 'sorting'"],
-div[v-show="AlgoCategory.value === 'pathfinding'"],
-div[v-show="AlgoCategory.value === 'about'"] {
+.view-content-wrapper {
   flex: 1; // Takes available vertical space from its parent
   display: flex; // It's a flex container for the actual view component
   flex-direction: column; // Its child (the view component) will stack
   min-height: 0; // Allow it to shrink if content is small, while still being flex:1
   overflow: auto; // Default overflow handling for these wrappers.
-  // Child components like AboutView can handle their internal scroll.
-}
 
-div[v-show="AlgoCategory.value === 'about'"] {
-  flex: 1; // Takes available vertical space from its parent
-  display: flex; // It's a flex container for the actual view component
-  flex-direction: column; // Its child (the view component) will stack
-  min-height: 0; // Allow it to shrink if content is small, while still being flex:1
-  overflow: auto; // Default overflow handling for these wrappers.
-  height: 100%; // Ensure it fills the parent
-  justify-content: center; // Center vertically
-  align-items: center; // Center horizontally
+  &--about {
+    // Specific styles for the about wrapper, applied in addition to .view-content-wrapper
+    height: 100%; // Ensure it fills the parent
+    justify-content: center; // Center vertically
+    align-items: center; // Center horizontally
+  }
 }
 
 @media screen and (max-width: 768px) {
@@ -230,11 +217,8 @@ div[v-show="AlgoCategory.value === 'about'"] {
     }
 
     // Specific mobile overrides for view hosting divs if needed, e.g., for overflow
-    div[v-show="AlgoCategory.value === 'sorting'"],
-    div[v-show="AlgoCategory.value === 'pathfinding'"],
-    div[v-show="AlgoCategory.value === 'about'"] {
+    .view-content-wrapper {
       overflow-y: hidden; // Mobile-specific override, keeps existing behavior
-      // flex, display, min-height are inherited from global rules
     }
   }
 

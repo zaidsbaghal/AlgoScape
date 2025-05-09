@@ -90,12 +90,16 @@
   </ClientOnly>
 </template>
 <script setup>
-import { onMounted, ref, nextTick, defineProps } from "vue";
+import { onMounted, ref, nextTick, defineProps, watch } from "vue";
 import GridNode from "~/components/GridNode.vue";
 
 // Define props
 const props = defineProps({
   isMobile: {
+    type: Boolean,
+    default: false,
+  },
+  isActive: {
     type: Boolean,
     default: false,
   },
@@ -128,6 +132,7 @@ const endX = ref(DESKTOP_END_X);
 const endY = ref(DESKTOP_END_Y);
 
 const graphActionRef = ref(null);
+const isMounted = ref(false);
 
 const animations = ref([]);
 // const defaultGraph = ref([]); // Not explicitly used, can be removed if not needed later
@@ -191,22 +196,17 @@ const clearWallsAndVisualization = () => {
 };
 
 const updateGridDimensionsAndInitialize = async () => {
-  // Visual cleanup of any lingering start/end classes from a previous render cycle
-  // This is important if this function runs multiple times during initialization (e.g. mobile with setTimeout)
   if (
     grid.value &&
     grid.value.length > 0 &&
     grid.value[0].length > 0 &&
     graphActionRef.value
   ) {
-    // Use the *current* (potentially old) colNum/rowNum to iterate existing DOM if it exists
-    // This relies on colNum and rowNum reflecting the state of the currently rendered grid
-    // or using a broad sweep if they are not reliable (e.g. querySelectorAll)
     const existingCols = graphActionRef.value.querySelectorAll(".col");
     existingCols.forEach((colElement) => {
       const nodes = colElement.querySelectorAll(
         ".box, .start, .end, .wall, .visited, .path, .fringe"
-      ); // Query all possible node states
+      );
       nodes.forEach((nodeElement) => {
         if (
           nodeElement.classList.contains("start") ||
@@ -256,7 +256,6 @@ const updateGridDimensionsAndInitialize = async () => {
       );
 
       if (newColNum <= 1 || newRowNum <= 1) {
-        // Handle very small grids
         startX.value = 0;
         startY.value = 0;
         endX.value = Math.max(0, newColNum - 1);
@@ -279,23 +278,53 @@ const updateGridDimensionsAndInitialize = async () => {
       endY.value = MOBILE_FALLBACK_END_Y;
     }
   }
+
+  if (colNum.value <= 0 || rowNum.value <= 0) {
+    return;
+  }
+
   initGrid();
-  await nextTick(); // Ensure grid DOM is created before setting start/end classes
+  await nextTick();
   setStart();
   setEnd();
 };
 
-onMounted(async () => {
-  await updateGridDimensionsAndInitialize(); // Initial attempt
+const tryInitializeGrid = async (attempt = 1) => {
+  const maxAttempts = 5;
+  const retryDelay = 200; // ms
 
-  if (props.isMobile) {
-    // On mobile, sometimes the initial dimensions are not yet stable due to browser rendering flow.
-    // A small delay can help ensure we get the final dimensions.
+  if (props.isActive && isMounted.value) {
+    await nextTick();
     setTimeout(async () => {
-      await updateGridDimensionsAndInitialize();
-    }, 100); // 100ms delay, can be adjusted
+      if (props.isActive && isMounted.value) {
+        if (graphActionRef.value && graphActionRef.value.clientWidth > 0) {
+          await updateGridDimensionsAndInitialize();
+        } else {
+          if (attempt < maxAttempts) {
+            setTimeout(() => tryInitializeGrid(attempt + 1), retryDelay);
+          } else {
+            await updateGridDimensionsAndInitialize();
+          }
+        }
+      }
+    }, 300); // Initial delay before first check
   }
+};
+
+onMounted(async () => {
+  isMounted.value = true;
+  await tryInitializeGrid(); // Call with default attempt = 1
 });
+
+watch(
+  () => props.isActive,
+  async (newIsActive, oldIsActive) => {
+    if (newIsActive) {
+      await tryInitializeGrid(); // Call with default attempt = 1
+    }
+  },
+  { immediate: false }
+);
 
 const initGrid = () => {
   let newGrid = [];
@@ -523,15 +552,6 @@ const setStart = () => {
     node.ddist = 0;
     const element = document.getElementById(node.id);
     if (element) element.className = "start";
-    else console.error(`Element with ID ${node.id} not found for setStart`);
-  } else {
-    console.error(
-      "Start node position out of bounds:",
-      startX.value,
-      startY.value,
-      colNum.value,
-      rowNum.value
-    );
   }
 };
 
@@ -541,15 +561,6 @@ const setEnd = () => {
     node.isEnd = true;
     const element = document.getElementById(node.id);
     if (element) element.className = "end";
-    else console.error(`Element with ID ${node.id} not found for setEnd`);
-  } else {
-    console.error(
-      "End node position out of bounds:",
-      endX.value,
-      endY.value,
-      colNum.value,
-      rowNum.value
-    );
   }
 };
 
@@ -660,7 +671,6 @@ const runAlgorithm = (algoFunction, ...args) => {
       ...args
     );
   } catch (err) {
-    console.error(`Error in ${algoFunction.name}:`, err);
     enableButtons();
     viz.value = false;
     return;
@@ -806,6 +816,7 @@ const generateRandomMaze = async () => {
     border: 1px solid $gunmetal;
     width: fit-content;
     display: flex;
+    justify-content: center;
     transform: rotateX(180deg);
     box-sizing: border-box;
   }
@@ -840,7 +851,7 @@ const generateRandomMaze = async () => {
   transition: background-color 0.2s ease;
 
   &:disabled {
-    background-color: lighten($gunmetal, 20%);
+    background-color: color.adjust($gunmetal, $lightness: 20%);
     cursor: not-allowed;
   }
 }

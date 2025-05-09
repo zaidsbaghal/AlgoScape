@@ -108,12 +108,12 @@ const props = defineProps({
 const NODE_SIZE = 26; // Re-introduced for dynamic fitting
 
 // Define Desktop and Mobile constants (Mobile ones are fallbacks if dynamic sizing fails)
-const DESKTOP_ROWS = 30;
+const DESKTOP_ROWS = 40;
 const DESKTOP_COLS = 70;
 const DESKTOP_START_X = 30;
-const DESKTOP_START_Y = 15;
+const DESKTOP_START_Y = 20;
 const DESKTOP_END_X = 40;
-const DESKTOP_END_Y = 15;
+const DESKTOP_END_Y = 20;
 
 const TABLET_ROWS = 25;
 const TABLET_COLS = 35;
@@ -347,6 +347,7 @@ const updateGridDimensionsAndInitialize = async () => {
   // but don't reduce if it's already at a very small count (e.g., 1).
   const conservativeMaxFitCols =
     maxFitColsCalc > 1 ? maxFitColsCalc - 1 : maxFitColsCalc;
+
   const conservativeMaxFitRows =
     maxFitRowsCalc > 1 ? maxFitRowsCalc - 1 : maxFitRowsCalc;
 

@@ -37,10 +37,13 @@
             </button>
           </div>
         </div>
-        <div v-show="AlgoCategory === 'sorting'">
+        <div class="view-content-wrapper" v-show="AlgoCategory === 'sorting'">
           <SortingView :is-mobile="isMobile"></SortingView>
         </div>
-        <div v-show="AlgoCategory === 'pathfinding'">
+        <div
+          class="view-content-wrapper"
+          v-show="AlgoCategory === 'pathfinding'"
+        >
           <PathfindingView
             :is-mobile="isMobile"
             :is-active="AlgoCategory === 'pathfinding'"
@@ -205,7 +208,8 @@ select {
   flex: 1; // Takes available vertical space from its parent
   display: flex; // It's a flex container for the actual view component
   flex-direction: column; // Its child (the view component) will stack
-  min-height: 0; // Allow it to shrink if content is small, while still being flex:1
+  min-height: 0; 
+  max-height: 65vh;
   overflow: auto; // Default overflow handling for these wrappers.
   box-sizing: border-box; // Ensure padding/border are included in element's total width/height
 
@@ -228,8 +232,6 @@ select {
   .main {
     height: 100vh;
 
-    // > div:first-child styling is now global
-
     .algorithm-container {
       height: auto;
       margin-top: 0.5rem;
@@ -247,37 +249,10 @@ select {
 
     // Specific mobile overrides for view hosting divs if needed, e.g., for overflow
     .view-content-wrapper {
-      overflow-y: hidden; // Mobile-specific override, keeps existing behavior
+      max-height: unset;
+      display: unset;
     }
   }
-
-  // Commented out, as this is now handled in AboutView.vue
-  // .copyright {
-  //   position: static;
-  //   flex-shrink: 0;
-  //   padding: 5px 0;
-  //   padding-bottom: 10px;
-  //   font-size: 10px;
-  //   opacity: 1;
-  //   line-height: 1.2;
-  //   width: 100%;
-  //   text-align: center;
-  //   color: $gunmetal;
-  //   p {
-  //     margin: 0;
-  //   }
-  // }
-
-  // This rule for specific v-show divs might be redundant if combined above
-  // div[v-show="AlgoCategory.value === 'sorting'"],
-  // div[v-show="AlgoCategory.value === 'pathfinding'"],
-  // div[v-show="AlgoCategory.value === 'about'"] {
-  //   flex: 1;
-  //   display: flex;
-  //   flex-direction: column;
-  //   min-height: 0;
-  //   // overflow-y: hidden; // This was here
-  // }
 }
 
 @media screen and (min-device-width: 1200px) and (max-device-width: 1600px) and (-webkit-min-device-pixel-ratio: 1) {

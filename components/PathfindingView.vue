@@ -1,7 +1,11 @@
 <template>
   <ClientOnly>
     <div class="path-container fade-in">
-      <div class="graph-action" ref="graphActionRef">
+      <div
+        class="graph-action"
+        ref="graphActionRef"
+        :class="{ visible: isGridRendered }"
+      >
         <div class="col" v-for="(col, index) in grid" :key="index">
           <GridNode
             v-for="node in col"
@@ -90,7 +94,7 @@
   </ClientOnly>
 </template>
 <script setup>
-import { onMounted, ref, nextTick, defineProps, watch } from "vue";
+import { onMounted, ref, nextTick, defineProps, watch, defineEmits } from "vue";
 import GridNode from "~/components/GridNode.vue";
 
 // Define props
@@ -104,6 +108,8 @@ const props = defineProps({
     default: false,
   },
 });
+
+const emit = defineEmits(["grid-loaded", "grid-size-determined"]);
 
 const NODE_SIZE = 26; // Re-introduced for dynamic fitting
 
@@ -168,6 +174,7 @@ const prevNodeClass = ref(null); // Stores class of node before mouseEnter (for 
 const viz = ref(false);
 
 const gridInitializing = ref(true);
+const isGridRendered = ref(false);
 
 const clearWallsAndVisualization = () => {
   viz.value = false;
@@ -249,6 +256,7 @@ const updateGridDimensionsAndInitialize = async () => {
     await nextTick();
     setStart();
     setEnd();
+    isGridRendered.value = true;
     return; // Exit if graphEl is not ready
   }
 
@@ -258,6 +266,14 @@ const updateGridDimensionsAndInitialize = async () => {
 
   const screenWidth = typeof window !== "undefined" ? window.innerWidth : 0;
   const geStyle = window.getComputedStyle(graphEl);
+
+  let sizeCategory = "large"; // Default to large
+  if (screenWidth <= 480) {
+    sizeCategory = "small";
+  } else if (screenWidth <= 768) {
+    sizeCategory = "medium";
+  }
+  emit("grid-size-determined", sizeCategory);
 
   if (screenWidth > 768) {
     // Desktop
@@ -416,6 +432,7 @@ const updateGridDimensionsAndInitialize = async () => {
   await nextTick();
   setStart();
   setEnd();
+  isGridRendered.value = true;
 };
 
 const tryInitializeGrid = async (attempt = 1) => {
@@ -950,6 +967,12 @@ const generateRandomMaze = async () => {
     justify-content: center;
     transform: rotateX(180deg);
     box-sizing: border-box;
+    opacity: 0; /* Initially hidden */
+    transition: opacity 0.5s ease-in-out; /* Transition for fade-in */
+  }
+
+  .graph-action.visible {
+    opacity: 1; /* Visible state */
   }
 
   @media screen and (min-width: 769px) {

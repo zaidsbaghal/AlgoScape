@@ -52,7 +52,7 @@
             v-show="!pathfindingLoading"
             :is-mobile="isMobile"
             :is-active="AlgoCategory === 'pathfinding'"
-            @grid-loaded="onPathfindingGridLoaded"
+            @grid-size-determined="setPathfindingLoadingTimeout"
           ></PathfindingView>
         </div>
         <div
@@ -102,6 +102,8 @@ const loaderColor = ref("#264653");
 const loaderSize = ref("300");
 const pathfindingLoading = ref(false);
 
+let pathfindingTimeoutId = null;
+
 // Persist AlgoCategory to localStorage
 onMounted(() => {
   const savedCategory = localStorage.getItem("selectedAlgoCategory");
@@ -120,12 +122,32 @@ watch(AlgoCategory, (newCategory) => {
   localStorage.setItem("selectedAlgoCategory", newCategory);
   if (newCategory === "pathfinding") {
     pathfindingLoading.value = true;
-    // Fallback timeout in case the grid-loaded event doesn't fire
-    setTimeout(() => {
-      pathfindingLoading.value = false;
-    }, 2000);
+    // Timeout will be set by setPathfindingLoadingTimeout based on grid size
+  } else {
+    // If switching away from pathfinding, ensure loading is false
+    pathfindingLoading.value = false;
   }
 });
+
+const setPathfindingLoadingTimeout = (sizeCategory) => {
+  if (AlgoCategory.value !== "pathfinding") return;
+
+  if (pathfindingTimeoutId) {
+    clearTimeout(pathfindingTimeoutId);
+  }
+
+  let duration = 2000; // Default for medium or unspecified
+  if (sizeCategory === "small") {
+    duration = 1000;
+  } else if (sizeCategory === "large") {
+    duration = 3000;
+  }
+
+  pathfindingTimeoutId = setTimeout(() => {
+    pathfindingLoading.value = false;
+    pathfindingTimeoutId = null;
+  }, duration);
+};
 
 // Navigation function
 const setAlgoCategory = (category) => {
@@ -140,9 +162,9 @@ const setAlgoCategory = (category) => {
 };
 
 // Handle grid loaded event
-const onPathfindingGridLoaded = () => {
-  pathfindingLoading.value = false;
-};
+// const onPathfindingGridLoaded = () => {
+//   pathfindingLoading.value = false;
+// };
 </script>
 
 <style lang="scss">

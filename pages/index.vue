@@ -156,8 +156,8 @@ select {
         padding: 5px;
         cursor: pointer;
         color: $gunmetal;
-        opacity: 0.6;
-        transition: opacity 0.2s ease, transform 0.2s ease;
+        opacity: 0.7;
+        transition: opacity 0.2s ease, transform 0.2s ease, color 0.2s ease;
         -webkit-tap-highlight-color: transparent;
 
         &:focus {
@@ -166,11 +166,13 @@ select {
 
         &:hover {
           opacity: 1;
+          transform: scale(1.2);
+          color: $gunmetal;
         }
 
         &.active {
           opacity: 1;
-          transform: scale(1.1);
+          transform: scale(1.2);
           color: $chestnut;
         }
       }
@@ -197,7 +199,7 @@ select {
 @media screen and (max-width: 768px) {
   .main {
     height: 100vh;
-    overflow-y: hidden;
+
 
     // > div:first-child styling is now global
 

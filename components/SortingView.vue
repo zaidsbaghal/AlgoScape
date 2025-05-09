@@ -687,7 +687,7 @@ const insertionSortButton = () => {
   .active-window {
     padding: 0.5rem;
     flex: 1;
-    min-height: 0;
+    min-height: fit-content;
     width: 100%;
     box-sizing: border-box;
     display: flex; // Keep display:flex for mobile .active-window

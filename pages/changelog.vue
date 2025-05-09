@@ -7,7 +7,7 @@
       regularly to stay informed about new features and improvements.
     </p>
 
-    <h2>Version 1.3.0</h2>
+    <h2>Version 0.3.0-alpha</h2>
     <ul>
       <li>
         Added a "Generate Maze" feature to the Pathfinding view for creating
@@ -41,7 +41,8 @@
         bottom on mobile for improved ergonomics.
       </li>
       <li>
-        Implemented a new switcher for the main view (Sorting, Pathfinding, About).
+        Implemented a new switcher for the main view (Sorting, Pathfinding,
+        About).
       </li>
       <li>
         Added new about page with information about the project and the creator.
@@ -50,7 +51,7 @@
       <li>Many other minor bug fixes and improvements.</li>
     </ul>
 
-    <h2>Version 1.2.1</h2>
+    <h2>Version 0.2.1-alpha</h2>
     <ul>
       <li>
         Major improvements to Pathfinding on mobile devices:
@@ -97,7 +98,7 @@
       </li>
     </ul>
 
-    <h2>Version 1.2.0</h2>
+    <h2>Version 0.2.0-alpha</h2>
     <ul>
       <li>
         Major revamp of the mobile view for full responsiveness and usability
@@ -114,7 +115,7 @@
       </li>
     </ul>
 
-    <h2>Version 1.1.0</h2>
+    <h2>Version 0.1.0-alpha</h2>
     <ul>
       <li>
         Updated to Nuxt 3.17; improvements can be read about

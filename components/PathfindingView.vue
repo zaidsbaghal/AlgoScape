@@ -41,7 +41,7 @@
         >
           <span class="button-content-wrapper">
             <Icon name="ion:refresh-outline" style="vertical-align: middle" />
-            Reset Visualization
+            Reset Path
           </span>
         </button>
         <button

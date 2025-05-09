@@ -1,5 +1,15 @@
 <template>
   <div class="sort-container fade-in">
+    <div class="active-window">
+      <div class="array-container">
+        <div
+          class="array-bar"
+          v-for="(value, index) in array"
+          :key="index"
+          :style="{ height: `${value * heightFactor}` + 'px' }"
+        ></div>
+      </div>
+    </div>
     <div class="function-buttons">
       <button
         class="toolbar-button generate-button"
@@ -56,16 +66,6 @@
       >
         Insertion
       </button>
-    </div>
-    <div class="active-window">
-      <div class="array-container">
-        <div
-          class="array-bar"
-          v-for="(value, index) in array"
-          :key="index"
-          :style="{ height: `${value * heightFactor}` + 'px' }"
-        ></div>
-      </div>
     </div>
   </div>
 </template>
@@ -558,6 +558,16 @@ const insertionSortButton = () => {
     flex-wrap: wrap;
     justify-content: center;
   }
+
+  @media screen and (min-width: 769px) {
+    // Or your preferred desktop breakpoint
+    .active-window {
+      order: 2; // Content comes after buttons on desktop
+    }
+    .function-buttons {
+      order: 1; // Buttons come first on desktop
+    }
+  }
 }
 
 .toolbar-button {
@@ -666,10 +676,10 @@ const insertionSortButton = () => {
     -webkit-touch-callout: none; /* Prevent callout menu on long press */
     .function-buttons {
       flex-shrink: 0;
+      padding-top: 2rem;
       .toolbar-button {
         margin: 5px;
-        padding: 8px 12px;
-        font-size: 14px;
+        font-size: 16px;
         touch-action: manipulation; /* Prevent double-tap to zoom */
       }
     }
@@ -685,8 +695,6 @@ const insertionSortButton = () => {
   }
   .array-container {
     overflow-x: auto;
-    // flex: 1; Should NOT have flex:1 for mobile
-    // min-height: 0; Should NOT have min-height:0 for mobile
   }
   .array-bar {
     width: 8px;

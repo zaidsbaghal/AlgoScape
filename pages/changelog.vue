@@ -30,6 +30,22 @@
         Updated button labels in Sorting and Pathfinding views for conciseness
         (e.g., "Merge Sort" is now "Merge", "Depth First" is now "DFS").
       </li>
+      <li>
+        Optimized mobile UX by relocating control buttons in Sorting and
+        Pathfinding views to the bottom of the screen for easier one-handed
+        access.
+      </li>
+      <li>
+        Implemented an adaptive layout for Sorting and Pathfinding controls:
+        buttons are now at the top on desktop for conventional access and at the
+        bottom on mobile for improved ergonomics.
+      </li>
+      <li>
+        Implemented a new switcher for the main view (Sorting, Pathfinding, About).
+      </li>
+      <li>
+        Added new about page with information about the project and the creator.
+      </li>
       <li>Enhanced overall button and icon alignment for a cleaner look.</li>
       <li>Many other minor bug fixes and improvements.</li>
     </ul>

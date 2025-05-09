@@ -35,12 +35,6 @@ body {
   touch-action: manipulation;
 }
 
-@media screen and (max-width: 768px) {
-  html {
-    font-size: 14px; // Reduce base font size for smaller screens
-  }
-}
-
 .fade-in {
   animation: fadeIn ease 1s;
   -webkit-animation: fadeIn ease 1s;

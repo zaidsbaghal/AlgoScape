@@ -9,19 +9,23 @@
           <div class="view-switcher">
             <button
               @click="setAlgoCategory('sorting')"
-              :class="{ active: AlgoCategory.value === 'sorting' }"
+              :class="{ active: AlgoCategory === 'sorting' }"
               aria-label="Switch to Sorting View"
             >
-              <Icon name="ion:swap-vertical-outline" size="40" />
+              <Icon name="ion:cellular-outline" size="40" />
             </button>
             <button
               @click="setAlgoCategory('pathfinding')"
-              :class="{ active: AlgoCategory.value === 'pathfinding' }"
+              :class="{ active: AlgoCategory === 'pathfinding' }"
               aria-label="Switch to Pathfinding View"
             >
-              <Icon name="ion:footsteps-outline" size="40" />
+              <Icon name="ion:navigate-outline" size="40" />
             </button>
-            <button @click="navigateToAbout" aria-label="Go to About Page">
+            <button
+              @click="setAlgoCategory('about')"
+              :class="{ active: AlgoCategory === 'about' }"
+              aria-label="Show About Information"
+            >
               <Icon name="ion:information-circle-outline" size="40" />
             </button>
           </div>
@@ -37,32 +41,9 @@
         <div v-show="AlgoCategory === 'pathfinding'">
           <PathfindingView :is-mobile="isMobile"></PathfindingView>
         </div>
-      </div>
-      <div class="copyright">
-        <p>
-          Built by
-          <a
-            href="https://www.zaidsbaghal.com"
-            target="_blank"
-            class="highlighted-link"
-          >
-            Zaid Baghal
-          </a>
-          for
-          <a
-            href="https://www.rawistudios.com"
-            target="_blank"
-            class="highlighted-link"
-          >
-            Rawi.</a
-          >
-        </p>
-        <p>
-          © 2025 Rawi Studios. All rights reserved. |
-          <a href="/privacy" class="highlighted-link">Privacy</a> |
-          <a href="/terms" class="highlighted-link">Terms</a> |
-          <a href="/changelog" class="highlighted-link">Changelog</a>
-        </p>
+        <div v-show="AlgoCategory === 'about'">
+          <AboutView />
+        </div>
       </div>
     </client-only>
   </div>
@@ -72,6 +53,7 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import Logo from "~/components/Logo.vue";
+import AboutView from "~/components/AboutView.vue";
 
 // Computed property
 const isMobile = computed(() => {
@@ -111,32 +93,9 @@ watch(AlgoCategory, (newCategory) => {
 });
 
 // Navigation function
-const navigateToAbout = () => {
-  router.push("/about");
-};
-
 const setAlgoCategory = (category) => {
-  console.log("[DEBUG] Attempting to set AlgoCategory to:", category);
-  console.log(
-    "[DEBUG] Current AlgoCategory.value before set:",
-    AlgoCategory.value
-  );
-  // console.log("[DEBUG] AlgoCategory ref object before set:", AlgoCategory); // Keep this commented for now
   if (AlgoCategory && typeof AlgoCategory.value !== "undefined") {
     AlgoCategory.value = category;
-    console.log(
-      "[DEBUG] Successfully set AlgoCategory.value to:",
-      AlgoCategory.value
-    );
-    console.log("[DEBUG] Type of AlgoCategory after set:", typeof AlgoCategory);
-    console.log(
-      "[DEBUG] Is AlgoCategory a ref after set (AlgoCategory.__v_isRef)?:",
-      AlgoCategory && AlgoCategory.__v_isRef
-    );
-    console.log(
-      "[DEBUG] AlgoCategory object after set (full inspect):",
-      AlgoCategory
-    );
   } else {
     console.error(
       "[DEBUG] AlgoCategory is not a valid ref or has no .value property. Current state:",
@@ -175,6 +134,16 @@ select {
   display: flex;
   flex-direction: column;
   height: 100vh;
+
+  // This is the div directly inside <client-only>
+  // Moved to global scope for consistent layout
+  > div:first-child {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0; // Essential for flex children that might overflow
+  }
+
   .algorithm-container {
     margin-top: 1rem;
     margin-bottom: 1rem;
@@ -194,6 +163,11 @@ select {
         color: $gunmetal;
         opacity: 0.6;
         transition: opacity 0.2s ease, transform 0.2s ease;
+        -webkit-tap-highlight-color: transparent;
+
+        &:focus {
+          outline: none;
+        }
 
         &:hover {
           opacity: 1;
@@ -209,25 +183,28 @@ select {
   }
 }
 
-.copyright {
-  position: fixed;
-  bottom: 10px;
-  width: 100%;
-  text-align: center;
-  font-size: 10px;
-  color: $gunmetal;
-  opacity: 0.5;
-  line-height: 1.4;
-  p {
-    margin: 0;
-  }
-  .highlighted-link {
-    color: $gunmetal;
-    text-decoration: none;
-    &:hover {
-      text-decoration: underline;
-    }
-  }
+// Common styles for the view hosting divs
+// Moved to global scope for consistent layout
+div[v-show="AlgoCategory.value === 'sorting'"],
+div[v-show="AlgoCategory.value === 'pathfinding'"],
+div[v-show="AlgoCategory.value === 'about'"] {
+  flex: 1; // Takes available vertical space from its parent
+  display: flex; // It's a flex container for the actual view component
+  flex-direction: column; // Its child (the view component) will stack
+  min-height: 0; // Allow it to shrink if content is small, while still being flex:1
+  overflow: auto; // Default overflow handling for these wrappers.
+  // Child components like AboutView can handle their internal scroll.
+}
+
+div[v-show="AlgoCategory.value === 'about'"] {
+  flex: 1; // Takes available vertical space from its parent
+  display: flex; // It's a flex container for the actual view component
+  flex-direction: column; // Its child (the view component) will stack
+  min-height: 0; // Allow it to shrink if content is small, while still being flex:1
+  overflow: auto; // Default overflow handling for these wrappers.
+  height: 100%; // Ensure it fills the parent
+  justify-content: center; // Center vertically
+  align-items: center; // Center horizontally
 }
 
 @media screen and (max-width: 768px) {
@@ -235,13 +212,7 @@ select {
     height: 100vh;
     overflow-y: hidden;
 
-    > div:first-child {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      min-height: 0;
-      overflow-y: hidden;
-    }
+    // > div:first-child styling is now global
 
     .algorithm-container {
       height: auto;
@@ -258,31 +229,42 @@ select {
       }
     }
 
-    .copyright {
-      position: static;
-      flex-shrink: 0;
-      padding: 5px 0;
-      padding-bottom: 10px;
-      font-size: 10px;
-      opacity: 1;
-      line-height: 1.2;
-      width: 100%;
-      text-align: center;
-      color: $gunmetal;
-      p {
-        margin: 0;
-      }
-    }
-
+    // Specific mobile overrides for view hosting divs if needed, e.g., for overflow
     div[v-show="AlgoCategory.value === 'sorting'"],
-    div[v-show="AlgoCategory.value === 'pathfinding'"] {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      min-height: 0;
-      overflow-y: hidden;
+    div[v-show="AlgoCategory.value === 'pathfinding'"],
+    div[v-show="AlgoCategory.value === 'about'"] {
+      overflow-y: hidden; // Mobile-specific override, keeps existing behavior
+      // flex, display, min-height are inherited from global rules
     }
   }
+
+  // Commented out, as this is now handled in AboutView.vue
+  // .copyright {
+  //   position: static;
+  //   flex-shrink: 0;
+  //   padding: 5px 0;
+  //   padding-bottom: 10px;
+  //   font-size: 10px;
+  //   opacity: 1;
+  //   line-height: 1.2;
+  //   width: 100%;
+  //   text-align: center;
+  //   color: $gunmetal;
+  //   p {
+  //     margin: 0;
+  //   }
+  // }
+
+  // This rule for specific v-show divs might be redundant if combined above
+  // div[v-show="AlgoCategory.value === 'sorting'"],
+  // div[v-show="AlgoCategory.value === 'pathfinding'"],
+  // div[v-show="AlgoCategory.value === 'about'"] {
+  //   flex: 1;
+  //   display: flex;
+  //   flex-direction: column;
+  //   min-height: 0;
+  //   // overflow-y: hidden; // This was here
+  // }
 }
 
 @media screen and (min-device-width: 1200px) and (max-device-width: 1600px) and (-webkit-min-device-pixel-ratio: 1) {

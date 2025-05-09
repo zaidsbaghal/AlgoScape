@@ -1,6 +1,28 @@
 <template>
   <ClientOnly>
     <div class="path-container fade-in">
+      <div class="graph-action" ref="graphActionRef">
+        <div class="col" v-for="(col, index) in grid" :key="index">
+          <GridNode
+            v-for="node in col"
+            :key="node.id"
+            :id="node.id"
+            :nodeIdentifier="node.ref"
+            :row="node.row"
+            :col="node.col"
+            :isWall="node.isWall"
+            :isStart="node.isStart"
+            :isEnd="node.isEnd"
+            :visited="node.visited"
+            :parent="node.parent"
+            :ddist="node.ddist"
+            v-on:mousedown="mouseDown(node)"
+            v-on:mouseup="mouseUp(node)"
+            v-on:mouseenter="mouseEnter(node)"
+            v-on:mouseout="mouseOut(node)"
+          ></GridNode>
+        </div>
+      </div>
       <div class="function-buttons">
         <button
           class="toolbar-button reset-grid-button"
@@ -63,28 +85,6 @@
         >
           A*
         </button>
-      </div>
-      <div class="graph-action" ref="graphActionRef">
-        <div class="col" v-for="(col, index) in grid" :key="index">
-          <GridNode
-            v-for="node in col"
-            :key="node.id"
-            :id="node.id"
-            :nodeIdentifier="node.ref"
-            :row="node.row"
-            :col="node.col"
-            :isWall="node.isWall"
-            :isStart="node.isStart"
-            :isEnd="node.isEnd"
-            :visited="node.visited"
-            :parent="node.parent"
-            :ddist="node.ddist"
-            v-on:mousedown="mouseDown(node)"
-            v-on:mouseup="mouseUp(node)"
-            v-on:mouseenter="mouseEnter(node)"
-            v-on:mouseout="mouseOut(node)"
-          ></GridNode>
-        </div>
       </div>
     </div>
   </ClientOnly>
@@ -778,6 +778,10 @@ const generateRandomMaze = async () => {
   align-items: center;
   justify-content: center; // Also center horizontally within the span
   gap: 5px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: hidden;
+  box-sizing: border-box;
 }
 
 .path-container {
@@ -795,6 +799,7 @@ const generateRandomMaze = async () => {
     flex-wrap: wrap;
     justify-content: center;
     flex-shrink: 0;
+    box-sizing: border-box;
   }
 
   .graph-action {
@@ -803,6 +808,16 @@ const generateRandomMaze = async () => {
     display: flex;
     transform: rotateX(180deg);
     box-sizing: border-box;
+  }
+
+  @media screen and (min-width: 769px) {
+    // Or your preferred desktop breakpoint
+    .graph-action {
+      order: 2; // Content comes after buttons on desktop
+    }
+    .function-buttons {
+      order: 1; // Buttons come first on desktop
+    }
   }
 }
 
@@ -851,9 +866,9 @@ const generateRandomMaze = async () => {
 
     .function-buttons {
       padding-bottom: 0.5rem;
+      padding-top: 3rem;
       .toolbar-button {
         margin: 5px;
-        padding: 6px 10px;
       }
     }
 

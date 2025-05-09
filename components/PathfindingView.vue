@@ -226,24 +226,47 @@ const updateGridDimensionsAndInitialize = async () => {
     endX.value = DESKTOP_END_X;
     endY.value = DESKTOP_END_Y;
   } else {
-    await nextTick(); // Ensure DOM updates from any prior operations
+    await nextTick(); // Ensure DOM updates from any prior operations like node clearing
     const graphEl = graphActionRef.value;
+
     if (graphEl) {
-      // Temporarily reset style to allow natural flex sizing before measurement
-      const originalHeight = graphEl.style.height;
-      graphEl.style.height = "auto";
-      await nextTick(); // Wait for this style change to apply and layout to settle
+      const pathContainerEl = graphEl.parentElement;
+      let availableHeight = 0;
+      const availableWidth = graphEl.clientWidth; // clientWidth is usually more stable
 
-      if (graphEl.clientHeight > 0 && graphEl.clientWidth > 0) {
-        const availableHeight = graphEl.clientHeight;
-        const availableWidth = graphEl.clientWidth;
+      if (pathContainerEl) {
+        const pathContainerHeight = pathContainerEl.clientHeight;
+        const buttonsContainer =
+          pathContainerEl.querySelector(".function-buttons");
+        let buttonsFullHeight = 0;
+        if (buttonsContainer) {
+          const buttonsStyle = window.getComputedStyle(buttonsContainer);
+          buttonsFullHeight =
+            buttonsContainer.offsetHeight +
+            parseFloat(buttonsStyle.marginTop) +
+            parseFloat(buttonsStyle.marginBottom);
+        }
 
+        const graphElStyle = window.getComputedStyle(graphEl);
+        const graphElVerticalMargins =
+          parseFloat(graphElStyle.marginTop) +
+          parseFloat(graphElStyle.marginBottom);
+
+        availableHeight =
+          pathContainerHeight - buttonsFullHeight - graphElVerticalMargins;
+      } else {
+        // Fallback if pathContainerEl somehow isn't found, try direct measurement (less reliable here)
+        availableHeight = graphEl.clientHeight;
+      }
+
+      if (availableHeight > 0 && availableWidth > 0) {
         const newRowNum = Math.max(1, Math.floor(availableHeight / NODE_SIZE));
         const newColNum = Math.max(1, Math.floor(availableWidth / NODE_SIZE));
 
         rowNum.value = newRowNum;
         colNum.value = newColNum;
 
+        // Recalculate start/end based on new dimensions
         startX.value = Math.max(
           0,
           Math.min(Math.floor(newColNum / 4), newColNum - 1)
@@ -276,6 +299,7 @@ const updateGridDimensionsAndInitialize = async () => {
           }
         }
       } else {
+        // Fallback to default mobile dimensions if calculated height/width is invalid
         rowNum.value = MOBILE_FALLBACK_ROWS;
         colNum.value = MOBILE_FALLBACK_COLS;
         startX.value = MOBILE_FALLBACK_START_X;
@@ -283,7 +307,6 @@ const updateGridDimensionsAndInitialize = async () => {
         endX.value = MOBILE_FALLBACK_END_X;
         endY.value = MOBILE_FALLBACK_END_Y;
       }
-      graphEl.style.height = originalHeight; // Restore original height if it was set
     } else {
       // Fallback if graphEl is not available when expected
       rowNum.value = MOBILE_FALLBACK_ROWS;

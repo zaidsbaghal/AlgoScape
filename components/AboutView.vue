@@ -114,19 +114,21 @@
     color: $gunmetal;
     line-height: 1.6;
     margin: 0.4rem 0;
+    font-size: 1.5rem;
   }
 
   .version-number {
     font-weight: bold;
     color: $chestnut;
     margin-bottom: 0.8rem;
+    font-size: 1.5rem;
   }
 
   .built-by-info,
   .legal-links {
-    font-size: 0.95rem;
+    font-size: 1.5rem;
     opacity: 0.95;
-    color: $gunmetal; // Explicitly set color for consistency
+    color: $gunmetal;
   }
 
   .built-by-info {
@@ -169,6 +171,27 @@
 
   &:hover {
     color: $chestnut;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .about-content {
+    p {
+      font-size: 1rem;
+    }
+
+    .version-number {
+      font-size: 1.1rem;
+    }
+
+    .built-by-info,
+    .legal-links {
+      font-size: 0.9rem;
+    }
+  }
+
+  .icon-wrapper {
+    font-size: 30px;
   }
 }
 </style> 

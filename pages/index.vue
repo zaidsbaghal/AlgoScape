@@ -28,6 +28,13 @@
             >
               <Icon name="ion:information-circle-outline" size="40" />
             </button>
+            <button
+              @click="setAlgoCategory('feedback')"
+              :class="{ active: AlgoCategory === 'feedback' }"
+              aria-label="Provide Feedback"
+            >
+              <Icon name="ion:bug-outline" size="40" />
+            </button>
           </div>
         </div>
         <div v-show="AlgoCategory === 'sorting'">
@@ -39,8 +46,21 @@
             :is-active="AlgoCategory === 'pathfinding'"
           ></PathfindingView>
         </div>
-        <div v-show="AlgoCategory === 'about'">
+        <div
+          class="view-content-wrapper view-content-wrapper--about"
+          v-show="AlgoCategory === 'about'"
+        >
           <AboutView />
+        </div>
+        <div
+          class="view-content-wrapper view-content-wrapper--feedback"
+          v-show="AlgoCategory === 'feedback'"
+        >
+          <iframe
+            src="https://towering-star-fb4.notion.site/1e53de04ea888101a446f9323da4c80c?pvs=105"
+            style="width: 100%; height: 100%; border: none"
+            title="Feedback Form"
+          ></iframe>
         </div>
       </div>
     </client-only>
@@ -187,19 +207,26 @@ select {
   flex-direction: column; // Its child (the view component) will stack
   min-height: 0; // Allow it to shrink if content is small, while still being flex:1
   overflow: auto; // Default overflow handling for these wrappers.
+  box-sizing: border-box; // Ensure padding/border are included in element's total width/height
 
   &--about {
-    // Specific styles for the about wrapper, applied in addition to .view-content-wrapper
     height: 100%; // Ensure it fills the parent
     justify-content: center; // Center vertically
     align-items: center; // Center horizontally
+  }
+
+  &--feedback {
+    padding: 1rem; // Mobile default padding
+
+    @media screen and (min-width: 769px) {
+      padding: 2rem 4rem;
+    }
   }
 }
 
 @media screen and (max-width: 768px) {
   .main {
     height: 100vh;
-
 
     // > div:first-child styling is now global
 

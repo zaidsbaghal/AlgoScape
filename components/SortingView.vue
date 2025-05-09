@@ -1,56 +1,5 @@
 <template>
   <div class="sort-container fade-in">
-    <div class="function-buttons">
-      <button
-        class="toolbar-button generate-button"
-        v-on:click="genArray"
-        :disabled="buttonDisable"
-      >
-        Generate New
-      </button>
-      <button
-        class="toolbar-button reset-button"
-        v-on:click="resetArray"
-        :disabled="buttonDisable"
-      >
-        Reset Array
-      </button>
-      <button
-        class="toolbar-button"
-        v-on:click="mergeSortButton"
-        :disabled="buttonDisable"
-      >
-        Merge Sort
-      </button>
-      <button
-        class="toolbar-button"
-        v-on:click="quickSortButton"
-        :disabled="buttonDisable"
-      >
-        Quick Sort
-      </button>
-      <button
-        class="toolbar-button"
-        v-on:click="bubbleSortButton"
-        :disabled="buttonDisable"
-      >
-        Bubble Sort
-      </button>
-      <button
-        class="toolbar-button"
-        v-on:click="selectionSortButton"
-        :disabled="buttonDisable"
-      >
-        Selection Sort
-      </button>
-      <button
-        class="toolbar-button"
-        v-on:click="insertionSortButton"
-        :disabled="buttonDisable"
-      >
-        Insertion Sort
-      </button>
-    </div>
     <div class="active-window">
       <div class="array-container">
         <div
@@ -60,6 +9,63 @@
           :style="{ height: `${value * heightFactor}` + 'px' }"
         ></div>
       </div>
+    </div>
+    <div class="function-buttons">
+      <button
+        class="toolbar-button generate-button"
+        v-on:click="genArray"
+        :disabled="buttonDisable"
+      >
+        <span class="button-content-wrapper">
+          <Icon name="ion:stats-chart-sharp" style="vertical-align: middle" />
+          Generate
+        </span>
+      </button>
+      <button
+        class="toolbar-button reset-button"
+        v-on:click="resetArray"
+        :disabled="buttonDisable"
+      >
+        <span class="button-content-wrapper">
+          <Icon name="ion:refresh-outline" style="vertical-align: middle" />
+          Reset
+        </span>
+      </button>
+      <button
+        class="toolbar-button"
+        v-on:click="mergeSortButton"
+        :disabled="buttonDisable"
+      >
+        Merge
+      </button>
+      <button
+        class="toolbar-button"
+        v-on:click="quickSortButton"
+        :disabled="buttonDisable"
+      >
+        Quick
+      </button>
+      <button
+        class="toolbar-button"
+        v-on:click="bubbleSortButton"
+        :disabled="buttonDisable"
+      >
+        Bubble
+      </button>
+      <button
+        class="toolbar-button"
+        v-on:click="selectionSortButton"
+        :disabled="buttonDisable"
+      >
+        Selection
+      </button>
+      <button
+        class="toolbar-button"
+        v-on:click="insertionSortButton"
+        :disabled="buttonDisable"
+      >
+        Insertion
+      </button>
     </div>
   </div>
 </template>
@@ -552,10 +558,20 @@ const insertionSortButton = () => {
     flex-wrap: wrap;
     justify-content: center;
   }
+
+  @media screen and (min-width: 769px) {
+    // Or your preferred desktop breakpoint
+    .active-window {
+      order: 2; // Content comes after buttons on desktop
+    }
+    .function-buttons {
+      order: 1; // Buttons come first on desktop
+    }
+  }
 }
 
 .toolbar-button {
-  margin: 15px;
+  margin: 10px;
   background-color: $gunmetal;
   border: none;
   color: $white-smoke;
@@ -589,7 +605,7 @@ const insertionSortButton = () => {
   flex-direction: column;
   justify-content: flex-end;
   height: 65vh; // Keep user's desktop height adjustment
-  padding: 3rem;
+  padding: 2rem;
 }
 
 .array-container {
@@ -660,18 +676,19 @@ const insertionSortButton = () => {
     -webkit-touch-callout: none; /* Prevent callout menu on long press */
     .function-buttons {
       flex-shrink: 0;
+      padding: 0.5rem; 
+      padding-top: 0.5rem;
       .toolbar-button {
         margin: 5px;
-        padding: 8px 12px;
-        font-size: 14px;
+        font-size: 16px;
         touch-action: manipulation; /* Prevent double-tap to zoom */
       }
     }
   }
   .active-window {
-    padding: 0.5rem;
+    padding: 1rem;
     flex: 1;
-    min-height: 0;
+    min-height: fit-content;
     width: 100%;
     box-sizing: border-box;
     display: flex; // Keep display:flex for mobile .active-window
@@ -679,12 +696,17 @@ const insertionSortButton = () => {
   }
   .array-container {
     overflow-x: auto;
-    // flex: 1; Should NOT have flex:1 for mobile
-    // min-height: 0; Should NOT have min-height:0 for mobile
   }
   .array-bar {
     width: 8px;
     margin: 0 1px;
   }
+}
+
+.button-content-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center; // Also center horizontally within the span
+  gap: 5px;
 }
 </style>

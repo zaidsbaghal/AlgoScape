@@ -1,5 +1,6 @@
 {
   "private": true,
+  "version": "0.4.0-alpha",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
@@ -9,12 +10,14 @@
   },
   "devDependencies": {
     "@nuxt/content": "^2.7.0",
-    "@nuxt/fonts": "0.11.2",
+    "@nuxt/fonts": "^0.11.2",
+    "@nuxt/icon": "1.12.0",
     "@nuxt/image": "^1.0.0-rc.1",
     "sass": "^1.56.2",
     "sass-loader": "^13.2.0"
   },
   "dependencies": {
+    "@nuxt/kit": "^3.17.2",
     "@pinia/nuxt": "^0.4.11",
     "@types/node": "^20.3.3",
     "nuxt": "^3.17.1",
@@ -24,5 +27,5 @@
     "vue": "^3.3.4",
     "webpack": "^5.88.1"
   },
-  "packageManager": "yarn@4.9.1"
+  "packageManager": "pnpm@8.15.5"
 }

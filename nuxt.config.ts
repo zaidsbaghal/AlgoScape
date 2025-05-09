@@ -3,7 +3,18 @@ import { defineNuxtConfig } from "nuxt/config";
 export default defineNuxtConfig({
   css: ["~/assets/main.scss"],
   plugins: [],
-  modules: ["@pinia/nuxt", "nuxt-gtag", "@nuxt/fonts"],
+  modules: ["@pinia/nuxt", "nuxt-gtag", "@nuxt/fonts", "@nuxt/icon"],
+  // @ts-expect-error: @nuxt/fonts types might not be augmenting NuxtConfig correctly here
+  fonts: {
+    families: [
+      {
+        name: "Inter Tight",
+        provider: "google",
+        weights: ["400", "700"],
+        display: "swap",
+      },
+    ],
+  },
   build: {},
   compatibilityDate: "2025-01-13",
   app: {
@@ -24,7 +35,6 @@ export default defineNuxtConfig({
           content:
             "algorithms, data structures, sorting, pathfinding, visualization, education, computer science, merge sort, quick sort, dijkstra, a*, bfs, dfs",
         },
-        { name: "author", content: "Zachary Brown" },
       ],
       htmlAttrs: {
         lang: "en",

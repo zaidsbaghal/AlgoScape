@@ -21,19 +21,21 @@ I had a lot of fun building this project. Not only did this help me strengthen m
 
 ## Build Setup
 
+This project uses [pnpm](https://pnpm.io/) as the package manager.
+
 ```bash
-# install dependencies
-$ yarn install
+# Install dependencies
+$ pnpm install
 
-# serve with hot reload at localhost:3000
-$ yarn dev
+# Serve with hot reload at localhost:3000
+$ pnpm dev
 
-# build for production and launch server
-$ yarn build
-$ yarn start
+# Build for production and launch server
+$ pnpm build
+$ pnpm preview # Use preview instead of start for Nuxt 3
 
-# generate static project
-$ yarn generate
+# Generate static project
+$ pnpm generate
 ```
 
-For detailed explanation on how things work, check out [Nuxt.js docs](https://nuxtjs.org).
+For detailed explanation on how things work, check out the [Nuxt documentation](https://nuxt.com).

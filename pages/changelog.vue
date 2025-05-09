@@ -7,6 +7,28 @@
       regularly to stay informed about new features and improvements.
     </p>
 
+    <h2>Version 0.4.0-alpha</h2>
+    <ul>
+      <li>
+        <strong>Feedback Made Easy:</strong> Introduced a new Feedback section
+        with an integrated form. Share your thoughts, suggestions, or report any
+        bugs directly within the app!
+      </li>
+      <li>
+        <strong>Improved Mobile Experience:</strong> The Pathfinding grid now
+        dynamically adjusts to a wider range of mobile screen sizes, aiming for
+        a better fit and less scrolling.
+      </li>
+      <li>
+        <strong>Enhanced About Page:</strong> The About page now features
+        larger, more readable text for a more comfortable viewing experience.
+      </li>
+      <li>
+        Major CSS overhauls and style consistency improvements across the
+        application.
+      </li>
+    </ul>
+
     <h2>Version 0.3.0-alpha</h2>
     <ul>
       <li>
@@ -31,26 +53,21 @@
         (e.g., "Merge Sort" is now "Merge", "Depth First" is now "DFS").
       </li>
       <li>
-        Optimized mobile UX by relocating control buttons in Sorting and
-        Pathfinding views to the bottom of the screen for easier one-handed
-        access.
+        Implemented an adaptive layout for Sorting and Pathfinding controls,
+        relocating them to the bottom of the screen on mobile for easier
+        one-handed access and keeping them at the top on desktop for
+        conventional use.
       </li>
       <li>
-        Implemented an adaptive layout for Sorting and Pathfinding controls:
-        buttons are now at the top on desktop for conventional access and at the
-        bottom on mobile for improved ergonomics.
+        Added new about page with information about the project and the creator.
       </li>
       <li>
         Implemented a new switcher for the main view (Sorting, Pathfinding,
         About).
       </li>
-      <li>
-        Added new about page with information about the project and the creator.
-      </li>
       <li>Enhanced overall button and icon alignment for a cleaner look.</li>
       <li>Many other minor bug fixes and improvements.</li>
     </ul>
-
     <h2>Version 0.2.1-alpha</h2>
     <ul>
       <li>

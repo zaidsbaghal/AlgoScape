@@ -105,7 +105,7 @@ const props = defineProps({
   },
 });
 
-const NODE_SIZE = 26; // 25px (GridNode size) + 0.5px border * 2
+const NODE_SIZE = 26; // Re-introduced for dynamic fitting
 
 // Define Desktop and Mobile constants (Mobile ones are fallbacks if dynamic sizing fails)
 const DESKTOP_ROWS = 30;
@@ -115,12 +115,27 @@ const DESKTOP_START_Y = 15;
 const DESKTOP_END_X = 40;
 const DESKTOP_END_Y = 15;
 
-const MOBILE_FALLBACK_ROWS = 20;
-const MOBILE_FALLBACK_COLS = 10;
-const MOBILE_FALLBACK_START_X = 2;
-const MOBILE_FALLBACK_START_Y = 9;
-const MOBILE_FALLBACK_END_X = 7;
-const MOBILE_FALLBACK_END_Y = 9;
+const TABLET_ROWS = 25;
+const TABLET_COLS = 35;
+const TABLET_START_X = 5;
+const TABLET_START_Y = 12;
+const TABLET_END_X = 25;
+const TABLET_END_Y = 12;
+
+const MOBILE_ROWS = 20;
+const MOBILE_COLS = 14;
+const MOBILE_START_X = 2;
+const MOBILE_START_Y = 9;
+const MOBILE_END_X = 11;
+const MOBILE_END_Y = 9;
+
+// Fallback (if window.innerWidth is somehow 0 or not available initially)
+const FALLBACK_ROWS = 20;
+const FALLBACK_COLS = 10;
+const FALLBACK_START_X = 2;
+const FALLBACK_START_Y = 9;
+const FALLBACK_END_X = 7;
+const FALLBACK_END_Y = 9;
 
 const rowNum = ref(DESKTOP_ROWS);
 const colNum = ref(DESKTOP_COLS);
@@ -151,6 +166,8 @@ const isMovingEndMobile = ref(false);
 
 const prevNodeClass = ref(null); // Stores class of node before mouseEnter (for desktop dragging)
 const viz = ref(false);
+
+const gridInitializing = ref(true);
 
 const clearWallsAndVisualization = () => {
   viz.value = false;
@@ -196,6 +213,7 @@ const clearWallsAndVisualization = () => {
 };
 
 const updateGridDimensionsAndInitialize = async () => {
+  // Clear existing visual nodes first
   if (
     grid.value &&
     grid.value.length > 0 &&
@@ -217,110 +235,181 @@ const updateGridDimensionsAndInitialize = async () => {
       });
     });
   }
+  await nextTick(); // Wait for DOM to reflect cleared nodes
 
-  if (!props.isMobile) {
-    rowNum.value = DESKTOP_ROWS;
-    colNum.value = DESKTOP_COLS;
-    startX.value = DESKTOP_START_X;
-    startY.value = DESKTOP_START_Y;
-    endX.value = DESKTOP_END_X;
-    endY.value = DESKTOP_END_Y;
-  } else {
-    await nextTick(); // Ensure DOM updates from any prior operations like node clearing
-    const graphEl = graphActionRef.value;
+  const graphEl = graphActionRef.value;
+  if (!graphEl) {
+    rowNum.value = FALLBACK_ROWS;
+    colNum.value = FALLBACK_COLS;
+    startX.value = FALLBACK_START_X;
+    startY.value = FALLBACK_START_Y;
+    endX.value = FALLBACK_END_X;
+    endY.value = FALLBACK_END_Y;
+    initGrid();
+    await nextTick();
+    setStart();
+    setEnd();
+    return; // Exit if graphEl is not ready
+  }
 
-    if (graphEl) {
-      const pathContainerEl = graphEl.parentElement;
-      let availableHeight = 0;
-      const availableWidth = graphEl.clientWidth; // clientWidth is usually more stable
+  let availableDrawingWidth;
+  let availableDrawingHeight;
+  let targetDesiredCols, targetDesiredRows;
 
-      if (pathContainerEl) {
-        const pathContainerHeight = pathContainerEl.clientHeight;
-        const buttonsContainer =
-          pathContainerEl.querySelector(".function-buttons");
-        let buttonsFullHeight = 0;
-        if (buttonsContainer) {
-          const buttonsStyle = window.getComputedStyle(buttonsContainer);
-          buttonsFullHeight =
-            buttonsContainer.offsetHeight +
-            parseFloat(buttonsStyle.marginTop) +
-            parseFloat(buttonsStyle.marginBottom);
-        }
+  const screenWidth = typeof window !== "undefined" ? window.innerWidth : 0;
+  const geStyle = window.getComputedStyle(graphEl);
 
-        const graphElStyle = window.getComputedStyle(graphEl);
-        const graphElVerticalMargins =
-          parseFloat(graphElStyle.marginTop) +
-          parseFloat(graphElStyle.marginBottom);
+  if (screenWidth > 768) {
+    // Desktop
+    targetDesiredCols = DESKTOP_COLS;
+    targetDesiredRows = DESKTOP_ROWS;
+    const pathContainerEl = graphEl.parentElement;
+    if (pathContainerEl) {
+      const pcStyle = window.getComputedStyle(pathContainerEl);
+      const pcPaddingX =
+        parseFloat(pcStyle.paddingLeft) + parseFloat(pcStyle.paddingRight);
+      const pcPaddingY =
+        parseFloat(pcStyle.paddingTop) + parseFloat(pcStyle.paddingBottom);
 
-        availableHeight =
-          pathContainerHeight - buttonsFullHeight - graphElVerticalMargins;
-      } else {
-        // Fallback if pathContainerEl somehow isn't found, try direct measurement (less reliable here)
-        availableHeight = graphEl.clientHeight;
+      availableDrawingWidth = pathContainerEl.clientWidth - pcPaddingX;
+
+      let buttonsHeight = 0;
+      const buttonsContainer =
+        pathContainerEl.querySelector(".function-buttons");
+      if (buttonsContainer) {
+        const btnStyle = window.getComputedStyle(buttonsContainer);
+        buttonsHeight =
+          buttonsContainer.offsetHeight +
+          parseFloat(btnStyle.marginTop) +
+          parseFloat(btnStyle.marginBottom);
       }
+      availableDrawingHeight =
+        pathContainerEl.clientHeight - pcPaddingY - buttonsHeight;
 
-      if (availableHeight > 0 && availableWidth > 0) {
-        const newRowNum = Math.max(1, Math.floor(availableHeight / NODE_SIZE));
-        const newColNum = Math.max(1, Math.floor(availableWidth / NODE_SIZE));
-
-        rowNum.value = newRowNum;
-        colNum.value = newColNum;
-
-        // Recalculate start/end based on new dimensions
-        startX.value = Math.max(
-          0,
-          Math.min(Math.floor(newColNum / 4), newColNum - 1)
-        );
-        startY.value = Math.max(
-          0,
-          Math.min(Math.floor(newRowNum / 2), newRowNum - 1)
-        );
-        endX.value = Math.max(
-          0,
-          Math.min(Math.floor((newColNum * 3) / 4), newColNum - 1)
-        );
-        endY.value = Math.max(
-          0,
-          Math.min(Math.floor(newRowNum / 2), newRowNum - 1)
-        );
-
-        if (newColNum <= 1 || newRowNum <= 1) {
-          startX.value = 0;
-          startY.value = 0;
-          endX.value = Math.max(0, newColNum - 1);
-          endY.value = Math.max(0, newRowNum - 1);
-        }
-
-        if (startX.value === endX.value && startY.value === endY.value) {
-          if (newColNum > 1) {
-            endX.value = Math.min(startX.value + 1, newColNum - 1);
-          } else if (newRowNum > 1) {
-            endY.value = Math.min(startY.value + 1, newRowNum - 1);
-          }
-        }
-      } else {
-        // Fallback to default mobile dimensions if calculated height/width is invalid
-        rowNum.value = MOBILE_FALLBACK_ROWS;
-        colNum.value = MOBILE_FALLBACK_COLS;
-        startX.value = MOBILE_FALLBACK_START_X;
-        startY.value = MOBILE_FALLBACK_START_Y;
-        endX.value = MOBILE_FALLBACK_END_X;
-        endY.value = MOBILE_FALLBACK_END_Y;
-      }
+      availableDrawingWidth -=
+        parseFloat(geStyle.borderLeftWidth) +
+        parseFloat(geStyle.borderRightWidth);
+      availableDrawingHeight -=
+        parseFloat(geStyle.borderTopWidth) +
+        parseFloat(geStyle.borderBottomWidth);
     } else {
-      // Fallback if graphEl is not available when expected
-      rowNum.value = MOBILE_FALLBACK_ROWS;
-      colNum.value = MOBILE_FALLBACK_COLS;
-      startX.value = MOBILE_FALLBACK_START_X;
-      startY.value = MOBILE_FALLBACK_START_Y;
-      endX.value = MOBILE_FALLBACK_END_X;
-      endY.value = MOBILE_FALLBACK_END_Y;
+      availableDrawingWidth = screenWidth * 0.8; // Fallback available space
+      availableDrawingHeight = window.innerHeight * 0.6;
+    }
+  } else {
+    // Tablet & Mobile
+    if (screenWidth > 480) {
+      // Tablet
+      targetDesiredCols = TABLET_COLS;
+      targetDesiredRows = TABLET_ROWS;
+    } else {
+      // Mobile (screenWidth > 0)
+      targetDesiredCols = MOBILE_COLS;
+      targetDesiredRows = MOBILE_ROWS;
+    }
+    const pathContainerEl = graphEl.parentElement;
+    if (pathContainerEl) {
+      const buttonsContainer =
+        pathContainerEl.querySelector(".function-buttons");
+      let buttonsFullHeight = 0;
+      if (buttonsContainer) {
+        const btnStyle = window.getComputedStyle(buttonsContainer);
+        buttonsFullHeight =
+          buttonsContainer.offsetHeight +
+          parseFloat(btnStyle.marginTop) +
+          parseFloat(btnStyle.marginBottom);
+      }
+      const geMarginsY =
+        parseFloat(geStyle.marginTop) + parseFloat(geStyle.marginBottom);
+      availableDrawingHeight =
+        pathContainerEl.clientHeight - buttonsFullHeight - geMarginsY;
+      availableDrawingWidth = graphEl.clientWidth; // Mobile graphEl width is usually fine
+      // Mobile graphEl has no border defined in its style, so not subtracting it here.
+    } else {
+      availableDrawingWidth = screenWidth * 0.9; // Fallback available space
+      availableDrawingHeight = window.innerHeight * 0.7;
     }
   }
+  // Fallback if targetDesiredCols/Rows were not set (e.g. screenWidth was 0)
+  if (!targetDesiredCols || targetDesiredCols <= 0)
+    targetDesiredCols = FALLBACK_COLS;
+  if (!targetDesiredRows || targetDesiredRows <= 0)
+    targetDesiredRows = FALLBACK_ROWS;
 
-  if (colNum.value <= 0 || rowNum.value <= 0) {
-    return;
+  // Ensure availableDrawing values are positive
+  availableDrawingWidth = Math.max(0, availableDrawingWidth || 0);
+  availableDrawingHeight = Math.max(0, availableDrawingHeight || 0);
+
+  let maxFitColsCalc = Math.floor(availableDrawingWidth / NODE_SIZE);
+  let maxFitRowsCalc = Math.floor(availableDrawingHeight / NODE_SIZE);
+
+  // Conservative adjustment: reduce by 1 to give some breathing room,
+  // but don't reduce if it's already at a very small count (e.g., 1).
+  const conservativeMaxFitCols =
+    maxFitColsCalc > 1 ? maxFitColsCalc - 1 : maxFitColsCalc;
+  const conservativeMaxFitRows =
+    maxFitRowsCalc > 1 ? maxFitRowsCalc - 1 : maxFitRowsCalc;
+
+  // Ensure they are at least 1 after conservative adjustment
+  const finalMaxFitCols = Math.max(1, conservativeMaxFitCols);
+  const finalMaxFitRows = Math.max(1, conservativeMaxFitRows);
+
+  let finalCols = Math.min(targetDesiredCols, finalMaxFitCols);
+  let finalRows = Math.min(targetDesiredRows, finalMaxFitRows);
+
+  // Ensure final values are not less than fallbacks (and also at least 1)
+  finalCols = Math.max(finalCols, FALLBACK_COLS, 1);
+  finalRows = Math.max(finalRows, FALLBACK_ROWS, 1);
+
+  colNum.value = finalCols;
+  rowNum.value = finalRows;
+
+  // Recalculate Start/End points
+  startX.value = Math.max(
+    0,
+    Math.min(Math.floor(finalCols / 4), finalCols > 0 ? finalCols - 1 : 0)
+  );
+  startY.value = Math.max(
+    0,
+    Math.min(Math.floor(finalRows / 2), finalRows > 0 ? finalRows - 1 : 0)
+  );
+  endX.value = Math.max(
+    0,
+    Math.min(Math.floor((finalCols * 3) / 4), finalCols > 0 ? finalCols - 1 : 0)
+  );
+  endY.value = Math.max(
+    0,
+    Math.min(Math.floor(finalRows / 2), finalRows > 0 ? finalRows - 1 : 0)
+  );
+
+  if (finalCols <= 1 || finalRows <= 1) {
+    startX.value = 0;
+    startY.value = 0;
+    endX.value = Math.max(0, finalCols > 0 ? finalCols - 1 : 0);
+    endY.value = Math.max(0, finalRows > 0 ? finalRows - 1 : 0);
   }
+  if (startX.value === endX.value && startY.value === endY.value) {
+    if (finalCols > 1) endX.value = Math.min(startX.value + 1, finalCols - 1);
+    else if (finalRows > 1)
+      endY.value = Math.min(startY.value + 1, finalRows - 1);
+  }
+  // Final bounds check for start/end points (redundant if above is correct, but safe)
+  startX.value = Math.max(
+    0,
+    Math.min(startX.value, finalCols > 0 ? finalCols - 1 : 0)
+  );
+  startY.value = Math.max(
+    0,
+    Math.min(startY.value, finalRows > 0 ? finalRows - 1 : 0)
+  );
+  endX.value = Math.max(
+    0,
+    Math.min(endX.value, finalCols > 0 ? finalCols - 1 : 0)
+  );
+  endY.value = Math.max(
+    0,
+    Math.min(endY.value, finalRows > 0 ? finalRows - 1 : 0)
+  );
 
   initGrid();
   await nextTick();
@@ -627,6 +716,7 @@ const createNode = (row, col) => {
 const resetGrid = async () => {
   viz.value = false;
   buttonDisable.value = true; // Disable buttons during reset
+  gridInitializing.value = true; // Show loading indicator
   clearSelectedForMoveMobile();
   await updateGridDimensionsAndInitialize(); // This recalculates dimensions, calls initGrid, setStart, setEnd
 
@@ -643,8 +733,7 @@ const resetGrid = async () => {
           } else if (node.isEnd) {
             element.className = "end";
           } else if (node.isWall) {
-            // Should be false after initGrid called by update...
-            element.className = "wall"; // This case should ideally not happen if initGrid is correct
+            element.className = "wall";
           } else {
             element.className = "box";
           }
@@ -653,6 +742,7 @@ const resetGrid = async () => {
     }
   }
   enableButtons();
+  gridInitializing.value = false; // Hide loading indicator AFTER all reset operations
 };
 
 const resetVis = () => {

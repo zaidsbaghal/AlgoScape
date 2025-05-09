@@ -226,50 +226,66 @@ const updateGridDimensionsAndInitialize = async () => {
     endX.value = DESKTOP_END_X;
     endY.value = DESKTOP_END_Y;
   } else {
-    await nextTick();
+    await nextTick(); // Ensure DOM updates from any prior operations
     const graphEl = graphActionRef.value;
-    if (graphEl && graphEl.clientHeight > 0 && graphEl.clientWidth > 0) {
-      const availableHeight = graphEl.clientHeight;
-      const availableWidth = graphEl.clientWidth;
+    if (graphEl) {
+      // Temporarily reset style to allow natural flex sizing before measurement
+      const originalHeight = graphEl.style.height;
+      graphEl.style.height = "auto";
+      await nextTick(); // Wait for this style change to apply and layout to settle
 
-      const newRowNum = Math.max(1, Math.floor(availableHeight / NODE_SIZE));
-      const newColNum = Math.max(1, Math.floor(availableWidth / NODE_SIZE));
+      if (graphEl.clientHeight > 0 && graphEl.clientWidth > 0) {
+        const availableHeight = graphEl.clientHeight;
+        const availableWidth = graphEl.clientWidth;
 
-      rowNum.value = newRowNum;
-      colNum.value = newColNum;
+        const newRowNum = Math.max(1, Math.floor(availableHeight / NODE_SIZE));
+        const newColNum = Math.max(1, Math.floor(availableWidth / NODE_SIZE));
 
-      startX.value = Math.max(
-        0,
-        Math.min(Math.floor(newColNum / 4), newColNum - 1)
-      );
-      startY.value = Math.max(
-        0,
-        Math.min(Math.floor(newRowNum / 2), newRowNum - 1)
-      );
-      endX.value = Math.max(
-        0,
-        Math.min(Math.floor((newColNum * 3) / 4), newColNum - 1)
-      );
-      endY.value = Math.max(
-        0,
-        Math.min(Math.floor(newRowNum / 2), newRowNum - 1)
-      );
+        rowNum.value = newRowNum;
+        colNum.value = newColNum;
 
-      if (newColNum <= 1 || newRowNum <= 1) {
-        startX.value = 0;
-        startY.value = 0;
-        endX.value = Math.max(0, newColNum - 1);
-        endY.value = Math.max(0, newRowNum - 1);
-      }
+        startX.value = Math.max(
+          0,
+          Math.min(Math.floor(newColNum / 4), newColNum - 1)
+        );
+        startY.value = Math.max(
+          0,
+          Math.min(Math.floor(newRowNum / 2), newRowNum - 1)
+        );
+        endX.value = Math.max(
+          0,
+          Math.min(Math.floor((newColNum * 3) / 4), newColNum - 1)
+        );
+        endY.value = Math.max(
+          0,
+          Math.min(Math.floor(newRowNum / 2), newRowNum - 1)
+        );
 
-      if (startX.value === endX.value && startY.value === endY.value) {
-        if (newColNum > 1) {
-          endX.value = Math.min(startX.value + 1, newColNum - 1);
-        } else if (newRowNum > 1) {
-          endY.value = Math.min(startY.value + 1, newRowNum - 1);
+        if (newColNum <= 1 || newRowNum <= 1) {
+          startX.value = 0;
+          startY.value = 0;
+          endX.value = Math.max(0, newColNum - 1);
+          endY.value = Math.max(0, newRowNum - 1);
         }
+
+        if (startX.value === endX.value && startY.value === endY.value) {
+          if (newColNum > 1) {
+            endX.value = Math.min(startX.value + 1, newColNum - 1);
+          } else if (newRowNum > 1) {
+            endY.value = Math.min(startY.value + 1, newRowNum - 1);
+          }
+        }
+      } else {
+        rowNum.value = MOBILE_FALLBACK_ROWS;
+        colNum.value = MOBILE_FALLBACK_COLS;
+        startX.value = MOBILE_FALLBACK_START_X;
+        startY.value = MOBILE_FALLBACK_START_Y;
+        endX.value = MOBILE_FALLBACK_END_X;
+        endY.value = MOBILE_FALLBACK_END_Y;
       }
+      graphEl.style.height = originalHeight; // Restore original height if it was set
     } else {
+      // Fallback if graphEl is not available when expected
       rowNum.value = MOBILE_FALLBACK_ROWS;
       colNum.value = MOBILE_FALLBACK_COLS;
       startX.value = MOBILE_FALLBACK_START_X;
@@ -804,6 +820,7 @@ const generateRandomMaze = async () => {
   box-sizing: border-box;
 
   .function-buttons {
+    padding: 1rem;
     padding-bottom: 1rem;
     display: flex;
     flex-wrap: wrap;
@@ -877,7 +894,7 @@ const generateRandomMaze = async () => {
 
     .function-buttons {
       padding-bottom: 0.5rem;
-      padding-top: 3rem;
+      padding-top: 0.5rem;
       .toolbar-button {
         margin: 5px;
       }

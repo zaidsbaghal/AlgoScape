@@ -605,7 +605,7 @@ const insertionSortButton = () => {
   flex-direction: column;
   justify-content: flex-end;
   height: 65vh; // Keep user's desktop height adjustment
-  padding: 3rem;
+  padding: 2rem;
 }
 
 .array-container {
@@ -676,7 +676,8 @@ const insertionSortButton = () => {
     -webkit-touch-callout: none; /* Prevent callout menu on long press */
     .function-buttons {
       flex-shrink: 0;
-      padding-top: 2rem;
+      padding: 0.5rem; 
+      padding-top: 0.5rem;
       .toolbar-button {
         margin: 5px;
         font-size: 16px;
@@ -685,7 +686,7 @@ const insertionSortButton = () => {
     }
   }
   .active-window {
-    padding: 0.5rem;
+    padding: 1rem;
     flex: 1;
     min-height: fit-content;
     width: 100%;

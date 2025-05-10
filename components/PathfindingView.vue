@@ -588,7 +588,9 @@ const mouseDown = (node) => {
 
     if (isMovingStartMobile.value) {
       // Allow placing on walls, but not on the end node.
-      if (node.isEnd) return;
+      if (node.isEnd) {
+        return;
+      }
 
       // Clear old start
       grid.value[startX.value][startY.value].isStart = false;
@@ -607,7 +609,9 @@ const mouseDown = (node) => {
       clearSelectedForMoveMobile();
     } else if (isMovingEndMobile.value) {
       // Allow placing on walls, but not on the start node.
-      if (node.isStart) return;
+      if (node.isStart) {
+        return;
+      }
 
       // Clear old end
       grid.value[endX.value][endY.value].isEnd = false;
@@ -659,48 +663,99 @@ const mouseUp = (node) => {
   if (props.isMobile) {
     mousePressed.value = false;
   } else {
+    // Desktop drag logic
     if (moveStart.value) {
       const oldStartX = startX.value;
       const oldStartY = startY.value;
-      // Check if old start exists in grid data and visually reset it
-      if (grid.value[oldStartX] && grid.value[oldStartX][oldStartY]) {
-        grid.value[oldStartX][oldStartY].isStart = false;
-        const oldStartElement = document.getElementById(
-          `Node-${oldStartX}-${oldStartY}`
-        );
-        if (oldStartElement) {
-          oldStartElement.className = "box"; // Reset visual class
-          oldStartElement.classList.remove("dragging-origin"); // Remove opacity class
+      const targetCol = node.col;
+      const targetRow = node.row;
+
+      const originalMovingElement = document.getElementById(
+        `Node-${oldStartX}-${oldStartY}`
+      );
+
+      // Prevent dropping start onto the current end node
+      if (targetCol === endX.value && targetRow === endY.value) {
+        if (originalMovingElement) {
+          originalMovingElement.className = "start"; // Restore class
+          originalMovingElement.classList.remove("dragging-origin");
+        }
+        moveStart.value = false;
+        mousePressed.value = false;
+        return; // Exit early
+      }
+
+      // Clear old start properties if it's a different node
+      if (!(oldStartX === targetCol && oldStartY === targetRow)) {
+        if (grid.value[oldStartX] && grid.value[oldStartX][oldStartY]) {
+          grid.value[oldStartX][oldStartY].isStart = false;
+          const oldStartElement = document.getElementById(
+            `Node-${oldStartX}-${oldStartY}`
+          );
+          if (oldStartElement) oldStartElement.className = "box";
         }
       }
-      // Update coordinates to new node
-      startX.value = node.col;
-      startY.value = node.row;
-      // Update new start node data & visual
-      grid.value[startX.value][startY.value].isStart = true;
-      grid.value[startX.value][startY.value].ddist = 0;
-      document.getElementById(node.id).className = "start";
+
+      if (originalMovingElement) {
+        originalMovingElement.classList.remove("dragging-origin");
+      }
+
+      // Update to new start
+      startX.value = targetCol;
+      startY.value = targetRow;
+      if (grid.value[startX.value] && grid.value[startX.value][startY.value]) {
+        grid.value[startX.value][startY.value].isStart = true;
+        grid.value[startX.value][startY.value].isWall = false; // Ensure it's not a wall
+        grid.value[startX.value][startY.value].ddist = 0;
+        const newStartElement = document.getElementById(node.id);
+        if (newStartElement) newStartElement.className = "start";
+      }
       moveStart.value = false;
     } else if (moveEnd.value) {
       const oldEndX = endX.value;
       const oldEndY = endY.value;
-      // Check if old end exists in grid data and visually reset it
-      if (grid.value[oldEndX] && grid.value[oldEndX][oldEndY]) {
-        grid.value[oldEndX][oldEndY].isEnd = false;
-        const oldEndElement = document.getElementById(
-          `Node-${oldEndX}-${oldEndY}`
-        );
-        if (oldEndElement) {
-          oldEndElement.className = "box"; // Reset visual class
-          oldEndElement.classList.remove("dragging-origin"); // Remove opacity class
+      const targetCol = node.col;
+      const targetRow = node.row;
+
+      const originalMovingElement = document.getElementById(
+        `Node-${oldEndX}-${oldEndY}`
+      );
+
+      // Prevent dropping end onto the current start node
+      if (targetCol === startX.value && targetRow === startY.value) {
+        if (originalMovingElement) {
+          originalMovingElement.className = "end"; // Restore class
+          originalMovingElement.classList.remove("dragging-origin");
+        }
+        moveEnd.value = false;
+        mousePressed.value = false;
+        return; // Exit early
+      }
+
+      // Clear old end properties if it's a different node
+      if (!(oldEndX === targetCol && oldEndY === targetRow)) {
+        if (grid.value[oldEndX] && grid.value[oldEndX][oldEndY]) {
+          grid.value[oldEndX][oldEndY].isEnd = false;
+          const oldEndElement = document.getElementById(
+            `Node-${oldEndX}-${oldEndY}`
+          );
+          if (oldEndElement) oldEndElement.className = "box";
         }
       }
-      // Update coordinates to new node
-      endX.value = node.col;
-      endY.value = node.row;
-      // Update new end node data & visual
-      grid.value[endX.value][endY.value].isEnd = true;
-      document.getElementById(node.id).className = "end";
+
+      if (originalMovingElement) {
+        originalMovingElement.classList.remove("dragging-origin");
+      }
+
+      // Update to new end
+      endX.value = targetCol;
+      endY.value = targetRow;
+      if (grid.value[endX.value] && grid.value[endX.value][endY.value]) {
+        grid.value[endX.value][endY.value].isEnd = true;
+        grid.value[endX.value][endY.value].isWall = false; // Ensure it's not a wall
+        const newEndElement = document.getElementById(node.id);
+        if (newEndElement) newEndElement.className = "end";
+      }
       moveEnd.value = false;
     }
     mousePressed.value = false;
@@ -819,7 +874,9 @@ const resetVis = () => {
           element.className = "start";
         } else if (node.isEnd) {
           element.className = "end";
-        } else if (!node.isWall) {
+        } else if (node.isWall) {
+          element.className = "wall";
+        } else {
           element.className = "box";
         }
         // Walls remain walls visually and in data

@@ -144,8 +144,18 @@ watch(AlgoCategory, (newCategory) => {
 });
 
 const setPathfindingLoadingTimeout = async (sizeCategory) => {
-  if (AlgoCategory.value !== "pathfinding") return;
+  // Only proceed if we are in pathfinding category AND currently in a loading state.
+  // This prevents re-triggering the timeout loop after the initial load.
+  if (AlgoCategory.value !== "pathfinding" || !pathfindingLoading.value) {
+    if (
+      AlgoCategory.value === "pathfinding" &&
+      pathfindingLoading.value === false
+    ) {
+    }
+    return;
+  }
 
+  // If a timeout is already scheduled from a previous emit during this loading phase, clear it.
   if (pathfindingTimeoutId) {
     clearTimeout(pathfindingTimeoutId);
   }
@@ -158,12 +168,12 @@ const setPathfindingLoadingTimeout = async (sizeCategory) => {
   }
 
   pathfindingTimeoutId = setTimeout(async () => {
-    pathfindingLoading.value = false;
-    pathfindingTimeoutId = null;
-    // Ensure DOM is updated after pathfindingLoading changes v-show
-    await nextTick();
+    pathfindingLoading.value = false; // Mark loading as complete
+    pathfindingTimeoutId = null; // Clear the ID as the timeout has executed
+    await nextTick(); // Ensure DOM updates after pathfindingLoading changes
     if (pathfindingViewRef.value) {
       pathfindingViewRef.value.triggerGridRecalculation();
+    } else {
     }
   }, duration);
 };
@@ -173,10 +183,6 @@ const setAlgoCategory = (category) => {
   if (AlgoCategory && typeof AlgoCategory.value !== "undefined") {
     AlgoCategory.value = category;
   } else {
-    console.error(
-      "[DEBUG] AlgoCategory is not a valid ref or has no .value property. Current state:",
-      AlgoCategory
-    );
   }
 };
 

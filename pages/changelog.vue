@@ -7,7 +7,7 @@
       regularly to stay informed about new features and improvements.
     </p>
 
-    <h2>Version 0.5.0-alpha</h2>
+    <h2>0.5.0-alpha</h2>
     <ul>
       <li>
         <strong>Pathfinding Stability Enhanced:</strong> Significantly improved
@@ -48,7 +48,7 @@
       </li>
     </ul>
 
-    <h2>Version 0.4.0-alpha</h2>
+    <h2>0.4.0-alpha</h2>
     <ul>
       <li>
         <strong>Feedback Made Easy:</strong> Introduced a new Feedback section
@@ -70,7 +70,7 @@
       </li>
     </ul>
 
-    <h2>Version 0.3.0-alpha</h2>
+    <h2>0.3.0-alpha</h2>
     <ul>
       <li>
         Added a "Generate Maze" feature to the Pathfinding view for creating
@@ -109,7 +109,7 @@
       <li>Enhanced overall button and icon alignment for a cleaner look.</li>
       <li>Many other minor bug fixes and improvements.</li>
     </ul>
-    <h2>Version 0.2.1-alpha</h2>
+    <h2>0.2.1-alpha</h2>
     <ul>
       <li>
         Major improvements to Pathfinding on mobile devices:
@@ -156,7 +156,7 @@
       </li>
     </ul>
 
-    <h2>Version 0.2.0-alpha</h2>
+    <h2>0.2.0-alpha</h2>
     <ul>
       <li>
         Major revamp of the mobile view for full responsiveness and usability
@@ -171,19 +171,15 @@
         Optimized font loading strategy for faster initial page load and
         rendering.
       </li>
-    </ul>
-
-    <h2>Version 0.1.0-alpha</h2>
-    <ul>
       <li>
         Updated to Nuxt 3.17; improvements can be read about
         <a href="https://nuxt.com/blog/v3-17" target="_blank">here</a>.
       </li>
     </ul>
 
-    <h2>1.0.0</h2>
+    <h2>0.1.0-alpha</h2>
     <ul>
-      <li>Official release of AlgoScape with full functionality.</li>
+      <li>Official alpha release of AlgoScape.</li>
       <li>
         Implemented interactive visualizations for sorting algorithms: Merge
         Sort, Quick Sort, Bubble Sort, Selection Sort, and Insertion Sort.
@@ -192,9 +188,6 @@
         Added pathfinding algorithms: Depth-First Search, Breadth-First Search,
         Dijkstra's Shortest Path, and A* Search.
       </li>
-      <li>Enhanced user interface with responsive design for desktop use.</li>
-      <li>Integrated feedback system for user suggestions.</li>
-      <li>Optimized performance for smooth animations and transitions.</li>
     </ul>
   </div>
 </template>

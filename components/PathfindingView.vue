@@ -373,7 +373,6 @@ const updateGridDimensionsAndInitialize = async () => {
   // but don't reduce if it's already at a very small count (e.g., 1).
   const conservativeMaxFitCols =
     maxFitColsCalc > 1 ? maxFitColsCalc - 1 : maxFitColsCalc;
-
   const conservativeMaxFitRows =
     maxFitRowsCalc > 1 ? maxFitRowsCalc - 1 : maxFitRowsCalc;
 
@@ -1067,6 +1066,16 @@ defineExpose({
 
   .graph-action.visible {
     opacity: 1; /* Visible state */
+  }
+
+  @media screen and (min-width: 769px) {
+    // Or your preferred desktop breakpoint
+    .graph-action {
+      order: 2; // Content comes after buttons on desktop
+    }
+    .function-buttons {
+      order: 1; // Buttons come first on desktop
+    }
   }
 
   @media screen and (min-width: 769px) {

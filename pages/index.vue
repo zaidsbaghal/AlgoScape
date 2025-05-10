@@ -356,6 +356,34 @@ select {
       display: unset;
     }
   }
+
+  // Commented out, as this is now handled in AboutView.vue
+  // .copyright {
+  //   position: static;
+  //   flex-shrink: 0;
+  //   padding: 5px 0;
+  //   padding-bottom: 10px;
+  //   font-size: 10px;
+  //   opacity: 1;
+  //   line-height: 1.2;
+  //   width: 100%;
+  //   text-align: center;
+  //   color: $gunmetal;
+  //   p {
+  //     margin: 0;
+  //   }
+  // }
+
+  // This rule for specific v-show divs might be redundant if combined above
+  // div[v-show="AlgoCategory.value === 'sorting'"],
+  // div[v-show="AlgoCategory.value === 'pathfinding'"],
+  // div[v-show="AlgoCategory.value === 'about'"] {
+  //   flex: 1;
+  //   display: flex;
+  //   flex-direction: column;
+  //   min-height: 0;
+  //   // overflow-y: hidden; // This was here
+  // }
 }
 
 @media screen and (min-device-width: 1200px) and (max-device-width: 1600px) and (-webkit-min-device-pixel-ratio: 1) {

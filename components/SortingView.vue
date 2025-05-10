@@ -572,6 +572,16 @@ const insertionSortButton = () => {
       order: 1; // Buttons come first on desktop
     }
   }
+
+  @media screen and (min-width: 769px) {
+    // Or your preferred desktop breakpoint
+    .active-window {
+      order: 2; // Content comes after buttons on desktop
+    }
+    .function-buttons {
+      order: 1; // Buttons come first on desktop
+    }
+  }
 }
 
 .toolbar-button {

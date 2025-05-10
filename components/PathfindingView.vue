@@ -94,7 +94,15 @@
   </ClientOnly>
 </template>
 <script setup>
-import { onMounted, ref, nextTick, defineProps, watch, defineEmits } from "vue";
+import {
+  onMounted,
+  ref,
+  nextTick,
+  defineProps,
+  watch,
+  defineEmits,
+  defineExpose,
+} from "vue";
 import GridNode from "~/components/GridNode.vue";
 
 // Define props
@@ -114,8 +122,8 @@ const emit = defineEmits(["grid-loaded", "grid-size-determined"]);
 const NODE_SIZE = 26; // Re-introduced for dynamic fitting
 
 // Define Desktop and Mobile constants (Mobile ones are fallbacks if dynamic sizing fails)
-const DESKTOP_ROWS = 40;
-const DESKTOP_COLS = 70;
+const DESKTOP_ROWS = 80;
+const DESKTOP_COLS = 80;
 const DESKTOP_START_X = 30;
 const DESKTOP_START_Y = 20;
 const DESKTOP_END_X = 40;
@@ -347,10 +355,12 @@ const updateGridDimensionsAndInitialize = async () => {
     }
   }
   // Fallback if targetDesiredCols/Rows were not set (e.g. screenWidth was 0)
-  if (!targetDesiredCols || targetDesiredCols <= 0)
+  if (!targetDesiredCols || targetDesiredCols <= 0) {
     targetDesiredCols = FALLBACK_COLS;
-  if (!targetDesiredRows || targetDesiredRows <= 0)
+  }
+  if (!targetDesiredRows || targetDesiredRows <= 0) {
     targetDesiredRows = FALLBACK_ROWS;
+  }
 
   // Ensure availableDrawing values are positive
   availableDrawingWidth = Math.max(0, availableDrawingWidth || 0);
@@ -436,24 +446,45 @@ const updateGridDimensionsAndInitialize = async () => {
 };
 
 const tryInitializeGrid = async (attempt = 1) => {
-  const maxAttempts = 5;
-  const retryDelay = 200; // ms
+  const maxAttempts = 10;
+  const retryDelay = 150;
 
   if (props.isActive && isMounted.value) {
     await nextTick();
-    setTimeout(async () => {
-      if (props.isActive && isMounted.value) {
-        if (graphActionRef.value && graphActionRef.value.clientWidth > 0) {
-          await updateGridDimensionsAndInitialize();
-        } else {
-          if (attempt < maxAttempts) {
-            setTimeout(() => tryInitializeGrid(attempt + 1), retryDelay);
-          } else {
-            await updateGridDimensionsAndInitialize();
-          }
-        }
-      }
-    }, 300); // Initial delay before first check
+    await waitForStableLayout(attempt, maxAttempts, retryDelay);
+  }
+};
+
+const waitForStableLayout = async (attempt, maxAttempts, delay) => {
+  const graphEl = graphActionRef.value;
+
+  if (!graphEl || !graphEl.parentElement) {
+    if (attempt < maxAttempts) {
+      setTimeout(
+        () => waitForStableLayout(attempt + 1, maxAttempts, delay),
+        delay
+      );
+    } else {
+      await updateGridDimensionsAndInitialize();
+    }
+    return;
+  }
+
+  const pathContainerEl = graphEl.parentElement;
+  const graphElWidth = graphEl.clientWidth;
+  const pathContainerHeight = pathContainerEl.clientHeight;
+  const pathContainerWidth = pathContainerEl.clientWidth;
+
+  // Key condition: pathContainerEl MUST have a height. graphEl width is also important.
+  if (pathContainerHeight > 0 && graphElWidth > 0 && pathContainerWidth > 0) {
+    await updateGridDimensionsAndInitialize();
+  } else if (attempt < maxAttempts) {
+    setTimeout(
+      () => waitForStableLayout(attempt + 1, maxAttempts, delay),
+      delay
+    );
+  } else {
+    await updateGridDimensionsAndInitialize();
   }
 };
 
@@ -746,6 +777,7 @@ const resetGrid = async () => {
         let node = grid.value[c][r];
         const element = document.getElementById(node.id);
         if (element) {
+          let oldClassName = element.className;
           if (node.isStart) {
             element.className = "start";
           } else if (node.isEnd) {
@@ -916,15 +948,20 @@ const generateRandomMaze = async () => {
   enableButtons(); // Re-enable buttons after maze generation
 };
 
-// Make sure your imported algorithm functions (dfs, bfs, dijkstra, aStar)
-// are adapted to:
-// 1. Accept parameters like: (grid, startX, startY, endX, endY, animationsArray, numRows, numCols, ...anyOtherSpecificParams)
-//    - Not all algos use endX/endY (like DFS, BFS for just traversal), adjust wrappers if needed.
-// 2. Push [command, col, row] tuples into the animationsArray they receive.
-//    - e.g., animationsArray.push(["curr", currentX, currentY]);
-//    - e.g., animationsArray.push(["path", pathNodeX, pathNodeY]);
-// 3. NOT try to directly manipulate DOM or use global/component animation arrays.
-// 4. Correctly update node properties like .parent, .ddist, .g, .h, .f, .closed as needed for their logic.
+const triggerGridRecalculation = async () => {
+  // Assuming isActive and isMounted are still appropriate
+  // Resetting attempt to 1 for a fresh try
+  if (props.isActive && isMounted.value) {
+    await tryInitializeGrid(1);
+  } else {
+  }
+};
+
+// Expose methods to parent
+defineExpose({
+  resetGrid,
+  triggerGridRecalculation, // Exposed the new method
+});
 </script>
 <style lang="scss" scoped>
 @use "sass:color";

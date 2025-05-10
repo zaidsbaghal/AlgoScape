@@ -48,12 +48,14 @@
             <Icon name="ion:reload-outline" size="40" class="loading-icon" />
             <p>Loading pathfinding grid...</p>
           </div>
-          <PathfindingView
-            v-show="!pathfindingLoading"
-            :is-mobile="isMobile"
-            :is-active="AlgoCategory === 'pathfinding'"
-            @grid-size-determined="setPathfindingLoadingTimeout"
-          ></PathfindingView>
+          <div v-show="!pathfindingLoading" class="pathfinding-view-host">
+            <PathfindingView
+              ref="pathfindingViewRef"
+              :is-mobile="isMobile"
+              :is-active="AlgoCategory === 'pathfinding'"
+              @grid-size-determined="setPathfindingLoadingTimeout"
+            ></PathfindingView>
+          </div>
         </div>
         <div
           class="view-content-wrapper view-content-wrapper--about"
@@ -68,6 +70,7 @@
           <iframe
             src="https://rawi-feedback.notion.site/1e53de04ea888101a446f9323da4c80c?pvs=105"
             style="width: 100%; height: 100%; border: none"
+            sandbox="allow-scripts allow-same-origin allow-forms"
             title="Feedback Form"
           ></iframe>
         </div>
@@ -77,7 +80,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted, watch, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import Logo from "~/components/Logo.vue";
 import AboutView from "~/components/AboutView.vue";
@@ -101,6 +104,7 @@ const loaderLoading = ref(true);
 const loaderColor = ref("#264653");
 const loaderSize = ref("300");
 const pathfindingLoading = ref(false);
+const pathfindingViewRef = ref(null);
 
 let pathfindingTimeoutId = null;
 
@@ -123,13 +127,23 @@ watch(AlgoCategory, (newCategory) => {
   if (newCategory === "pathfinding") {
     pathfindingLoading.value = true;
     // Timeout will be set by setPathfindingLoadingTimeout based on grid size
+    // Clear previous timeout if any when switching to pathfinding
+    if (pathfindingTimeoutId) {
+      clearTimeout(pathfindingTimeoutId);
+      pathfindingTimeoutId = null;
+    }
   } else {
     // If switching away from pathfinding, ensure loading is false
     pathfindingLoading.value = false;
+    // Also clear any pending pathfinding loading timeout
+    if (pathfindingTimeoutId) {
+      clearTimeout(pathfindingTimeoutId);
+      pathfindingTimeoutId = null;
+    }
   }
 });
 
-const setPathfindingLoadingTimeout = (sizeCategory) => {
+const setPathfindingLoadingTimeout = async (sizeCategory) => {
   if (AlgoCategory.value !== "pathfinding") return;
 
   if (pathfindingTimeoutId) {
@@ -143,9 +157,14 @@ const setPathfindingLoadingTimeout = (sizeCategory) => {
     duration = 3000;
   }
 
-  pathfindingTimeoutId = setTimeout(() => {
+  pathfindingTimeoutId = setTimeout(async () => {
     pathfindingLoading.value = false;
     pathfindingTimeoutId = null;
+    // Ensure DOM is updated after pathfindingLoading changes v-show
+    await nextTick();
+    if (pathfindingViewRef.value) {
+      pathfindingViewRef.value.triggerGridRecalculation();
+    }
   }, duration);
 };
 
@@ -280,8 +299,7 @@ select {
   flex: 1; // Takes available vertical space from its parent
   display: flex; // It's a flex container for the actual view component
   flex-direction: column; // Its child (the view component) will stack
-  min-height: 0;
-  max-height: 65vh;
+  min-height: 65vh;
   box-sizing: border-box; // Ensure padding/border are included in element's total width/height
 
   &--about {
@@ -297,6 +315,14 @@ select {
       padding: 2rem 4rem;
     }
   }
+}
+
+// Added style for the new host div
+.pathfinding-view-host {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 @media screen and (max-width: 768px) {

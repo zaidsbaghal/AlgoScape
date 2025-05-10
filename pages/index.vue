@@ -68,9 +68,16 @@
           v-show="AlgoCategory === 'feedback'"
         >
           <iframe
-            src="https://rawi-feedback.notion.site/1e53de04ea888101a446f9323da4c80c?pvs=105"
-            style="width: 100%; height: 100%; border: none"
+            src="https://rawi-feedback.notion.site/ebd/1e53de04ea888101a446f9323da4c80c"
+            style="
+              width: 100%;
+              height: 100%;
+              border: none;
+              overflow: auto;
+              -webkit-overflow-scrolling: touch;
+            "
             sandbox="allow-scripts allow-same-origin allow-forms"
+            allowfullscreen
             title="Feedback Form"
           ></iframe>
         </div>

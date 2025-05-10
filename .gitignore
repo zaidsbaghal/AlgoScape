@@ -89,3 +89,7 @@ sw.*
 *.swp
 
 .editorconfig
+
+.output
+dist/
+dist

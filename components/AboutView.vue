@@ -2,7 +2,7 @@
   <div class="about-view-container fade-in">
     <div class="about-content">
       <p>Thank you for using AlgoScape!</p>
-      <p class="version-number">Version: 0.4.0-alpha</p>
+      <p class="version-number">Version: 0.5.0-alpha</p>
 
       <p class="built-by-info">
         Built by

@@ -37,14 +37,25 @@
             </button>
           </div>
         </div>
-        <div v-show="AlgoCategory === 'sorting'">
+        <div class="view-content-wrapper" v-show="AlgoCategory === 'sorting'">
           <SortingView :is-mobile="isMobile"></SortingView>
         </div>
-        <div v-show="AlgoCategory === 'pathfinding'">
-          <PathfindingView
-            :is-mobile="isMobile"
-            :is-active="AlgoCategory === 'pathfinding'"
-          ></PathfindingView>
+        <div
+          class="view-content-wrapper"
+          v-show="AlgoCategory === 'pathfinding'"
+        >
+          <div v-if="pathfindingLoading" class="loading-container">
+            <Icon name="ion:reload-outline" size="40" class="loading-icon" />
+            <p>Loading pathfinding grid...</p>
+          </div>
+          <div v-show="!pathfindingLoading" class="pathfinding-view-host">
+            <PathfindingView
+              ref="pathfindingViewRef"
+              :is-mobile="isMobile"
+              :is-active="AlgoCategory === 'pathfinding'"
+              @grid-size-determined="setPathfindingLoadingTimeout"
+            ></PathfindingView>
+          </div>
         </div>
         <div
           class="view-content-wrapper view-content-wrapper--about"
@@ -59,6 +70,7 @@
           <iframe
             src="https://rawi-feedback.notion.site/1e53de04ea888101a446f9323da4c80c?pvs=105"
             style="width: 100%; height: 100%; border: none"
+            sandbox="allow-scripts allow-same-origin allow-forms"
             title="Feedback Form"
           ></iframe>
         </div>
@@ -68,7 +80,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted, watch, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import Logo from "~/components/Logo.vue";
 import AboutView from "~/components/AboutView.vue";
@@ -91,6 +103,10 @@ const AlgoCategory = ref("sorting");
 const loaderLoading = ref(true);
 const loaderColor = ref("#264653");
 const loaderSize = ref("300");
+const pathfindingLoading = ref(false);
+const pathfindingViewRef = ref(null);
+
+let pathfindingTimeoutId = null;
 
 // Persist AlgoCategory to localStorage
 onMounted(() => {
@@ -98,6 +114,9 @@ onMounted(() => {
 
   if (savedCategory) {
     AlgoCategory.value = savedCategory;
+    if (savedCategory === "pathfinding") {
+      pathfindingLoading.value = true;
+    }
   }
 
   loaderLoading.value = false; // Hide loader after mount
@@ -105,19 +124,72 @@ onMounted(() => {
 
 watch(AlgoCategory, (newCategory) => {
   localStorage.setItem("selectedAlgoCategory", newCategory);
+  if (newCategory === "pathfinding") {
+    pathfindingLoading.value = true;
+    // Timeout will be set by setPathfindingLoadingTimeout based on grid size
+    // Clear previous timeout if any when switching to pathfinding
+    if (pathfindingTimeoutId) {
+      clearTimeout(pathfindingTimeoutId);
+      pathfindingTimeoutId = null;
+    }
+  } else {
+    // If switching away from pathfinding, ensure loading is false
+    pathfindingLoading.value = false;
+    // Also clear any pending pathfinding loading timeout
+    if (pathfindingTimeoutId) {
+      clearTimeout(pathfindingTimeoutId);
+      pathfindingTimeoutId = null;
+    }
+  }
 });
+
+const setPathfindingLoadingTimeout = async (sizeCategory) => {
+  // Only proceed if we are in pathfinding category AND currently in a loading state.
+  // This prevents re-triggering the timeout loop after the initial load.
+  if (AlgoCategory.value !== "pathfinding" || !pathfindingLoading.value) {
+    if (
+      AlgoCategory.value === "pathfinding" &&
+      pathfindingLoading.value === false
+    ) {
+    }
+    return;
+  }
+
+  // If a timeout is already scheduled from a previous emit during this loading phase, clear it.
+  if (pathfindingTimeoutId) {
+    clearTimeout(pathfindingTimeoutId);
+  }
+
+  let duration = 2000; // Default for medium or unspecified
+  if (sizeCategory === "small") {
+    duration = 1000;
+  } else if (sizeCategory === "large") {
+    duration = 3000;
+  }
+
+  pathfindingTimeoutId = setTimeout(async () => {
+    pathfindingLoading.value = false; // Mark loading as complete
+    pathfindingTimeoutId = null; // Clear the ID as the timeout has executed
+    await nextTick(); // Ensure DOM updates after pathfindingLoading changes
+    if (pathfindingViewRef.value) {
+      pathfindingViewRef.value.triggerGridRecalculation();
+    } else {
+    }
+  }, duration);
+};
 
 // Navigation function
 const setAlgoCategory = (category) => {
   if (AlgoCategory && typeof AlgoCategory.value !== "undefined") {
     AlgoCategory.value = category;
   } else {
-    console.error(
-      "[DEBUG] AlgoCategory is not a valid ref or has no .value property. Current state:",
-      AlgoCategory
-    );
   }
 };
+
+// Handle grid loaded event
+// const onPathfindingGridLoaded = () => {
+//   pathfindingLoading.value = false;
+// };
 </script>
 
 <style lang="scss">
@@ -200,13 +272,40 @@ select {
   }
 }
 
+// Loading container styles
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: $gunmetal;
+
+  p {
+    margin-top: 1rem;
+    font-size: 1.2rem;
+  }
+
+  .loading-icon {
+    animation: spin 1.5s linear infinite;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 // Common styles for the view hosting divs
 .view-content-wrapper {
   flex: 1; // Takes available vertical space from its parent
   display: flex; // It's a flex container for the actual view component
   flex-direction: column; // Its child (the view component) will stack
-  min-height: 0; // Allow it to shrink if content is small, while still being flex:1
-  overflow: auto; // Default overflow handling for these wrappers.
+  min-height: 65vh;
   box-sizing: border-box; // Ensure padding/border are included in element's total width/height
 
   &--about {
@@ -224,11 +323,17 @@ select {
   }
 }
 
+// Added style for the new host div
+.pathfinding-view-host {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 @media screen and (max-width: 768px) {
   .main {
     height: 100vh;
-
-    // > div:first-child styling is now global
 
     .algorithm-container {
       height: auto;
@@ -247,7 +352,8 @@ select {
 
     // Specific mobile overrides for view hosting divs if needed, e.g., for overflow
     .view-content-wrapper {
-      overflow-y: hidden; // Mobile-specific override, keeps existing behavior
+      max-height: unset;
+      display: unset;
     }
   }
 

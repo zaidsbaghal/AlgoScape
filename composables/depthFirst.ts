@@ -40,6 +40,13 @@ const dfsHelper = (x, y, grid, animations, state, rowNum, colNum) => {
   if (current.isEnd) {
     animations.push(["end", x, y]);
     state.found = true;
+
+    // Backtrack to create path animations
+    let pathNode = current.parent;
+    while (pathNode && !pathNode.isStart) {
+      animations.push(["path", pathNode.col, pathNode.row]);
+      pathNode = pathNode.parent;
+    }
     return;
   } else if (!current.isStart) {
     animations.push(["visit", x, y]);
@@ -55,6 +62,7 @@ const dfsHelper = (x, y, grid, animations, state, rowNum, colNum) => {
     }
     // Check if the node is a wall using the grid structure
     if (!n.visited && !n.isWall) {
+      n.parent = current; // Set parent before recursive call
       dfsHelper(
         ncoords[0],
         ncoords[1],

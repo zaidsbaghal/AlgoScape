@@ -1,7 +1,11 @@
 <template>
   <ClientOnly>
     <div class="path-container fade-in">
-      <div class="graph-action" ref="graphActionRef">
+      <div
+        class="graph-action"
+        ref="graphActionRef"
+        :class="{ visible: isGridRendered }"
+      >
         <div class="col" v-for="(col, index) in grid" :key="index">
           <GridNode
             v-for="node in col"
@@ -90,7 +94,15 @@
   </ClientOnly>
 </template>
 <script setup>
-import { onMounted, ref, nextTick, defineProps, watch } from "vue";
+import {
+  onMounted,
+  ref,
+  nextTick,
+  defineProps,
+  watch,
+  defineEmits,
+  defineExpose,
+} from "vue";
 import GridNode from "~/components/GridNode.vue";
 
 // Define props
@@ -105,15 +117,17 @@ const props = defineProps({
   },
 });
 
+const emit = defineEmits(["grid-loaded", "grid-size-determined"]);
+
 const NODE_SIZE = 26; // Re-introduced for dynamic fitting
 
 // Define Desktop and Mobile constants (Mobile ones are fallbacks if dynamic sizing fails)
-const DESKTOP_ROWS = 30;
-const DESKTOP_COLS = 70;
+const DESKTOP_ROWS = 80;
+const DESKTOP_COLS = 80;
 const DESKTOP_START_X = 30;
-const DESKTOP_START_Y = 15;
+const DESKTOP_START_Y = 20;
 const DESKTOP_END_X = 40;
-const DESKTOP_END_Y = 15;
+const DESKTOP_END_Y = 20;
 
 const TABLET_ROWS = 25;
 const TABLET_COLS = 35;
@@ -168,6 +182,7 @@ const prevNodeClass = ref(null); // Stores class of node before mouseEnter (for 
 const viz = ref(false);
 
 const gridInitializing = ref(true);
+const isGridRendered = ref(false);
 
 const clearWallsAndVisualization = () => {
   viz.value = false;
@@ -249,6 +264,7 @@ const updateGridDimensionsAndInitialize = async () => {
     await nextTick();
     setStart();
     setEnd();
+    isGridRendered.value = true;
     return; // Exit if graphEl is not ready
   }
 
@@ -258,6 +274,14 @@ const updateGridDimensionsAndInitialize = async () => {
 
   const screenWidth = typeof window !== "undefined" ? window.innerWidth : 0;
   const geStyle = window.getComputedStyle(graphEl);
+
+  let sizeCategory = "large"; // Default to large
+  if (screenWidth <= 480) {
+    sizeCategory = "small";
+  } else if (screenWidth <= 768) {
+    sizeCategory = "medium";
+  }
+  emit("grid-size-determined", sizeCategory);
 
   if (screenWidth > 768) {
     // Desktop
@@ -331,10 +355,12 @@ const updateGridDimensionsAndInitialize = async () => {
     }
   }
   // Fallback if targetDesiredCols/Rows were not set (e.g. screenWidth was 0)
-  if (!targetDesiredCols || targetDesiredCols <= 0)
+  if (!targetDesiredCols || targetDesiredCols <= 0) {
     targetDesiredCols = FALLBACK_COLS;
-  if (!targetDesiredRows || targetDesiredRows <= 0)
+  }
+  if (!targetDesiredRows || targetDesiredRows <= 0) {
     targetDesiredRows = FALLBACK_ROWS;
+  }
 
   // Ensure availableDrawing values are positive
   availableDrawingWidth = Math.max(0, availableDrawingWidth || 0);
@@ -415,27 +441,49 @@ const updateGridDimensionsAndInitialize = async () => {
   await nextTick();
   setStart();
   setEnd();
+  isGridRendered.value = true;
 };
 
 const tryInitializeGrid = async (attempt = 1) => {
-  const maxAttempts = 5;
-  const retryDelay = 200; // ms
+  const maxAttempts = 10;
+  const retryDelay = 150;
 
   if (props.isActive && isMounted.value) {
     await nextTick();
-    setTimeout(async () => {
-      if (props.isActive && isMounted.value) {
-        if (graphActionRef.value && graphActionRef.value.clientWidth > 0) {
-          await updateGridDimensionsAndInitialize();
-        } else {
-          if (attempt < maxAttempts) {
-            setTimeout(() => tryInitializeGrid(attempt + 1), retryDelay);
-          } else {
-            await updateGridDimensionsAndInitialize();
-          }
-        }
-      }
-    }, 300); // Initial delay before first check
+    await waitForStableLayout(attempt, maxAttempts, retryDelay);
+  }
+};
+
+const waitForStableLayout = async (attempt, maxAttempts, delay) => {
+  const graphEl = graphActionRef.value;
+
+  if (!graphEl || !graphEl.parentElement) {
+    if (attempt < maxAttempts) {
+      setTimeout(
+        () => waitForStableLayout(attempt + 1, maxAttempts, delay),
+        delay
+      );
+    } else {
+      await updateGridDimensionsAndInitialize();
+    }
+    return;
+  }
+
+  const pathContainerEl = graphEl.parentElement;
+  const graphElWidth = graphEl.clientWidth;
+  const pathContainerHeight = pathContainerEl.clientHeight;
+  const pathContainerWidth = pathContainerEl.clientWidth;
+
+  // Key condition: pathContainerEl MUST have a height. graphEl width is also important.
+  if (pathContainerHeight > 0 && graphElWidth > 0 && pathContainerWidth > 0) {
+    await updateGridDimensionsAndInitialize();
+  } else if (attempt < maxAttempts) {
+    setTimeout(
+      () => waitForStableLayout(attempt + 1, maxAttempts, delay),
+      delay
+    );
+  } else {
+    await updateGridDimensionsAndInitialize();
   }
 };
 
@@ -539,7 +587,9 @@ const mouseDown = (node) => {
 
     if (isMovingStartMobile.value) {
       // Allow placing on walls, but not on the end node.
-      if (node.isEnd) return;
+      if (node.isEnd) {
+        return;
+      }
 
       // Clear old start
       grid.value[startX.value][startY.value].isStart = false;
@@ -558,7 +608,9 @@ const mouseDown = (node) => {
       clearSelectedForMoveMobile();
     } else if (isMovingEndMobile.value) {
       // Allow placing on walls, but not on the start node.
-      if (node.isStart) return;
+      if (node.isStart) {
+        return;
+      }
 
       // Clear old end
       grid.value[endX.value][endY.value].isEnd = false;
@@ -610,48 +662,99 @@ const mouseUp = (node) => {
   if (props.isMobile) {
     mousePressed.value = false;
   } else {
+    // Desktop drag logic
     if (moveStart.value) {
       const oldStartX = startX.value;
       const oldStartY = startY.value;
-      // Check if old start exists in grid data and visually reset it
-      if (grid.value[oldStartX] && grid.value[oldStartX][oldStartY]) {
-        grid.value[oldStartX][oldStartY].isStart = false;
-        const oldStartElement = document.getElementById(
-          `Node-${oldStartX}-${oldStartY}`
-        );
-        if (oldStartElement) {
-          oldStartElement.className = "box"; // Reset visual class
-          oldStartElement.classList.remove("dragging-origin"); // Remove opacity class
+      const targetCol = node.col;
+      const targetRow = node.row;
+
+      const originalMovingElement = document.getElementById(
+        `Node-${oldStartX}-${oldStartY}`
+      );
+
+      // Prevent dropping start onto the current end node
+      if (targetCol === endX.value && targetRow === endY.value) {
+        if (originalMovingElement) {
+          originalMovingElement.className = "start"; // Restore class
+          originalMovingElement.classList.remove("dragging-origin");
+        }
+        moveStart.value = false;
+        mousePressed.value = false;
+        return; // Exit early
+      }
+
+      // Clear old start properties if it's a different node
+      if (!(oldStartX === targetCol && oldStartY === targetRow)) {
+        if (grid.value[oldStartX] && grid.value[oldStartX][oldStartY]) {
+          grid.value[oldStartX][oldStartY].isStart = false;
+          const oldStartElement = document.getElementById(
+            `Node-${oldStartX}-${oldStartY}`
+          );
+          if (oldStartElement) oldStartElement.className = "box";
         }
       }
-      // Update coordinates to new node
-      startX.value = node.col;
-      startY.value = node.row;
-      // Update new start node data & visual
-      grid.value[startX.value][startY.value].isStart = true;
-      grid.value[startX.value][startY.value].ddist = 0;
-      document.getElementById(node.id).className = "start";
+
+      if (originalMovingElement) {
+        originalMovingElement.classList.remove("dragging-origin");
+      }
+
+      // Update to new start
+      startX.value = targetCol;
+      startY.value = targetRow;
+      if (grid.value[startX.value] && grid.value[startX.value][startY.value]) {
+        grid.value[startX.value][startY.value].isStart = true;
+        grid.value[startX.value][startY.value].isWall = false; // Ensure it's not a wall
+        grid.value[startX.value][startY.value].ddist = 0;
+        const newStartElement = document.getElementById(node.id);
+        if (newStartElement) newStartElement.className = "start";
+      }
       moveStart.value = false;
     } else if (moveEnd.value) {
       const oldEndX = endX.value;
       const oldEndY = endY.value;
-      // Check if old end exists in grid data and visually reset it
-      if (grid.value[oldEndX] && grid.value[oldEndX][oldEndY]) {
-        grid.value[oldEndX][oldEndY].isEnd = false;
-        const oldEndElement = document.getElementById(
-          `Node-${oldEndX}-${oldEndY}`
-        );
-        if (oldEndElement) {
-          oldEndElement.className = "box"; // Reset visual class
-          oldEndElement.classList.remove("dragging-origin"); // Remove opacity class
+      const targetCol = node.col;
+      const targetRow = node.row;
+
+      const originalMovingElement = document.getElementById(
+        `Node-${oldEndX}-${oldEndY}`
+      );
+
+      // Prevent dropping end onto the current start node
+      if (targetCol === startX.value && targetRow === startY.value) {
+        if (originalMovingElement) {
+          originalMovingElement.className = "end"; // Restore class
+          originalMovingElement.classList.remove("dragging-origin");
+        }
+        moveEnd.value = false;
+        mousePressed.value = false;
+        return; // Exit early
+      }
+
+      // Clear old end properties if it's a different node
+      if (!(oldEndX === targetCol && oldEndY === targetRow)) {
+        if (grid.value[oldEndX] && grid.value[oldEndX][oldEndY]) {
+          grid.value[oldEndX][oldEndY].isEnd = false;
+          const oldEndElement = document.getElementById(
+            `Node-${oldEndX}-${oldEndY}`
+          );
+          if (oldEndElement) oldEndElement.className = "box";
         }
       }
-      // Update coordinates to new node
-      endX.value = node.col;
-      endY.value = node.row;
-      // Update new end node data & visual
-      grid.value[endX.value][endY.value].isEnd = true;
-      document.getElementById(node.id).className = "end";
+
+      if (originalMovingElement) {
+        originalMovingElement.classList.remove("dragging-origin");
+      }
+
+      // Update to new end
+      endX.value = targetCol;
+      endY.value = targetRow;
+      if (grid.value[endX.value] && grid.value[endX.value][endY.value]) {
+        grid.value[endX.value][endY.value].isEnd = true;
+        grid.value[endX.value][endY.value].isWall = false; // Ensure it's not a wall
+        const newEndElement = document.getElementById(node.id);
+        if (newEndElement) newEndElement.className = "end";
+      }
       moveEnd.value = false;
     }
     mousePressed.value = false;
@@ -728,6 +831,7 @@ const resetGrid = async () => {
         let node = grid.value[c][r];
         const element = document.getElementById(node.id);
         if (element) {
+          let oldClassName = element.className;
           if (node.isStart) {
             element.className = "start";
           } else if (node.isEnd) {
@@ -769,7 +873,9 @@ const resetVis = () => {
           element.className = "start";
         } else if (node.isEnd) {
           element.className = "end";
-        } else if (!node.isWall) {
+        } else if (node.isWall) {
+          element.className = "wall";
+        } else {
           element.className = "box";
         }
         // Walls remain walls visually and in data
@@ -898,15 +1004,20 @@ const generateRandomMaze = async () => {
   enableButtons(); // Re-enable buttons after maze generation
 };
 
-// Make sure your imported algorithm functions (dfs, bfs, dijkstra, aStar)
-// are adapted to:
-// 1. Accept parameters like: (grid, startX, startY, endX, endY, animationsArray, numRows, numCols, ...anyOtherSpecificParams)
-//    - Not all algos use endX/endY (like DFS, BFS for just traversal), adjust wrappers if needed.
-// 2. Push [command, col, row] tuples into the animationsArray they receive.
-//    - e.g., animationsArray.push(["curr", currentX, currentY]);
-//    - e.g., animationsArray.push(["path", pathNodeX, pathNodeY]);
-// 3. NOT try to directly manipulate DOM or use global/component animation arrays.
-// 4. Correctly update node properties like .parent, .ddist, .g, .h, .f, .closed as needed for their logic.
+const triggerGridRecalculation = async () => {
+  // Assuming isActive and isMounted are still appropriate
+  // Resetting attempt to 1 for a fresh try
+  if (props.isActive && isMounted.value) {
+    await tryInitializeGrid(1);
+  } else {
+  }
+};
+
+// Expose methods to parent
+defineExpose({
+  resetGrid,
+  triggerGridRecalculation, // Exposed the new method
+});
 </script>
 <style lang="scss" scoped>
 @use "sass:color";
@@ -949,6 +1060,22 @@ const generateRandomMaze = async () => {
     justify-content: center;
     transform: rotateX(180deg);
     box-sizing: border-box;
+    opacity: 0; /* Initially hidden */
+    transition: opacity 0.5s ease-in-out; /* Transition for fade-in */
+  }
+
+  .graph-action.visible {
+    opacity: 1; /* Visible state */
+  }
+
+  @media screen and (min-width: 769px) {
+    // Or your preferred desktop breakpoint
+    .graph-action {
+      order: 2; // Content comes after buttons on desktop
+    }
+    .function-buttons {
+      order: 1; // Buttons come first on desktop
+    }
   }
 
   @media screen and (min-width: 769px) {

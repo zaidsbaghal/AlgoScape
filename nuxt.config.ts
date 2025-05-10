@@ -1,6 +1,7 @@
 import { defineNuxtConfig } from "nuxt/config";
 
 export default defineNuxtConfig({
+  ssr: true,
   css: ["~/assets/main.scss"],
   plugins: [],
   modules: ["@pinia/nuxt", "nuxt-gtag", "@nuxt/fonts", "@nuxt/icon"],
@@ -36,6 +37,7 @@ export default defineNuxtConfig({
             "algorithms, data structures, sorting, pathfinding, visualization, education, computer science, merge sort, quick sort, dijkstra, a*, bfs, dfs",
         },
       ],
+      link: [{ rel: "canonical", href: "https://algoscape.io" }],
       htmlAttrs: {
         lang: "en",
       },
@@ -46,6 +48,13 @@ export default defineNuxtConfig({
       gtag: {
         id: "G-V37Q6Z6GWH",
       },
+    },
+  },
+  nitro: {
+    preset: "static",
+    prerender: {
+      crawlLinks: true,
+      failOnError: false,
     },
   },
 });

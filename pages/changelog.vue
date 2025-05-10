@@ -7,6 +7,47 @@
       regularly to stay informed about new features and improvements.
     </p>
 
+    <h2>Version 0.5.0-alpha</h2>
+    <ul>
+      <li>
+        <strong>Pathfinding Stability Enhanced:</strong> Significantly improved
+        the Pathfinding grid's loading process. It now initializes more reliably
+        with a loading indicator, resolving previous issues that could cause the
+        grid to get stuck in a reloading loop.
+      </li>
+      <li>
+        <strong>DFS Path Now Visible:</strong> Corrected the Depth-First Search
+        (DFS) algorithm in Pathfinding to accurately highlight the discovered
+        path in green after the destination is found.
+      </li>
+      <li>
+        <strong>Smoother Start/End Node Dragging:</strong> Enhanced the desktop
+        experience for moving start and end nodes in the Pathfinding view. They
+        now reliably stay where you drop them and cannot be accidentally placed
+        on top of each other.
+      </li>
+      <li>
+        <strong>Wall Display Integrity:</strong> Resolved an issue in
+        Pathfinding where walls might not have displayed correctly after an
+        algorithm was run and the visualization was reset.
+      </li>
+      <li>
+        <strong>Expanded Desktop Grid:</strong> The default grid size for
+        desktop users in the Pathfinding view has been increased, offering a
+        larger canvas for visualizations.
+      </li>
+      <li>
+        <strong>Sorting View Layout Refined:</strong> Improved the layout and
+        responsiveness of the Sorting view, ensuring it better utilizes screen
+        space on both desktop and mobile devices.
+      </li>
+      <li>
+        <strong>New Home at algoscape.io:</strong> AlgoScape has a new official
+        domain! Site infrastructure has been updated to support
+        <code>algoscape.io</code>.
+      </li>
+    </ul>
+
     <h2>Version 0.4.0-alpha</h2>
     <ul>
       <li>
